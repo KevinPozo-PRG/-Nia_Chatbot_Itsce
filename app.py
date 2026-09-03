@@ -1,7 +1,8 @@
 import streamlit as st
 import os
+import requests
+import json
 from dotenv import load_dotenv
-from google import genai
 
 # Carga de variables de entorno
 load_dotenv()
@@ -76,78 +77,71 @@ def es_saludo_generico(text):
     clean = text.lower().strip().replace(".", "").replace("!", "").replace("¿", "").replace("?", "")
     return clean in SALUDOS_GENERICOS
 
-# --- OBTENCIÓN ROBUSTA DEL CLIENTE GOOGLE GENAI ---
-@st.cache_resource
-def get_genai_client():
+# --- OBTENCIÓN DE CLAVE API ---
+def get_gemini_api_key():
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key and "GEMINI_API_KEY" in st.secrets:
         api_key = st.secrets["GEMINI_API_KEY"]
+    return api_key
 
+# --- GENERADOR REST API ULTRA-INFALIBLE (SISTEMA MULTI-MODELO DIRECTO) ---
+def stream_gemini_response(prompt_text):
+    api_key = get_gemini_api_key()
     if not api_key:
-        return None
-
-    try:
-        return genai.Client(api_key=api_key)
-    except Exception:
-        return None
-
-# --- DESCUBRIMIENTO DINÁMICO DEL MODELO ACTIVO EN LA CUENTA ---
-@st.cache_resource
-def get_active_model_name(_client):
-    if not _client:
-        return "gemini-2.0-flash"
-    try:
-        available = []
-        for m in _client.models.list():
-            name = m.name.replace("models/", "") if hasattr(m, 'name') else str(m)
-            available.append(name)
-        
-        # Priorizar modelos estables
-        for pref in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-flash-lite", "gemini-1.5-pro"]:
-            if pref in available or f"models/{pref}" in available:
-                return pref
-        if available:
-            return available[0]
-    except Exception:
-        pass
-    return "gemini-2.0-flash"
-
-# --- GENERADOR DE STREAMING RESILIENTE ---
-def stream_gemini_response(prompt_text, client, active_model):
-    if not client:
         yield "⚠️ Por favor configura tu clave 'GEMINI_API_KEY' en los Secrets de Streamlit."
         return
 
     full_prompt = f"{SYSTEM_INSTRUCTION}\n\n[CONSULTA DEL PROSPECTO]:\n{prompt_text}"
 
-    # Probar en orden sin modelos obsoletos como gemini-pro
-    models_to_try = [active_model, "gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-flash-lite"]
-    unique_models = []
-    for m in models_to_try:
-        if m and m not in unique_models:
-            unique_models.append(m)
+    # Lista de modelos oficiales disponibles en Google AI Studio
+    candidate_models = [
+        "gemini-1.5-flash",
+        "gemini-2.0-flash",
+        "gemini-1.5-flash-latest",
+        "gemini-1.5-pro",
+        "gemini-flash-latest"
+    ]
 
-    last_err = ""
-    for model_name in unique_models:
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": full_prompt}
+                ]
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.7,
+            "maxOutputTokens": 800
+        }
+    }
+
+    headers = {"Content-Type": "application/json"}
+    last_error_details = ""
+
+    for model_name in candidate_models:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
         try:
-            response = client.models.generate_content_stream(
-                model=model_name,
-                contents=full_prompt
-            )
-            has_emitted = False
-            for chunk in response:
-                if chunk.text:
-                    has_emitted = True
-                    yield chunk.text
-            if has_emitted:
-                return
+            r = requests.post(url, headers=headers, json=payload, timeout=12)
+            if r.status_code == 200:
+                res_json = r.json()
+                try:
+                    text_result = res_json["candidates"][0]["content"]["parts"][0]["text"]
+                    if text_result:
+                        yield text_result
+                        return
+                except (KeyError, IndexError):
+                    continue
+            else:
+                last_error_details = f"HTTP {r.status_code}: {r.text[:150]}"
+                continue
         except Exception as e:
-            last_err = str(e)
+            last_error_details = str(e)
             continue
 
-    yield f"Disculpa, ocurrió un inconveniente momentáneo con el servicio de IA. Por favor reintenta en un segundo."
+    yield f"Disculpa, ocurrió un inconveniente con el servicio: {last_error_details}"
 
-# --- ESTILOS VISUALES: GAMA OFICIAL SITIO ISTCGE ASCEND + SPINNER CYAN ---
+# --- ESTILOS VISUALES: GAMA OFICIAL SITIO ISTCGE ASCEND ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -295,7 +289,7 @@ st.markdown("""
         font-weight: 700 !important;
     }
 
-    /* Estilo del Spinner de Carga */
+    /* Spinner de Carga */
     .stSpinner > div {
         border-top-color: #00D2FF !important;
     }
@@ -335,7 +329,7 @@ st.markdown("""
         box-shadow: 0 0 15px rgba(0, 210, 255, 0.3) !important;
     }
 
-    /* Eliminación de franjas y estilo integrado del input */
+    /* Eliminación de franjas e input integrado */
     [data-testid="stBottomBlockContainer"],
     [data-testid="stBottomBlockContainer"] > div,
     .stChatFloatingInputContainer,
@@ -368,7 +362,7 @@ st.markdown("""
         box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5), 0 0 25px rgba(0, 210, 255, 0.5) !important;
     }
 
-    /* Texto blanco puro y nítido al escribir */
+    /* Texto blanco nítido al escribir */
     .stChatInputContainer textarea,
     div[data-testid="stChatInput"] textarea,
     .stChatInput textarea,
@@ -414,10 +408,6 @@ st.markdown("""
     </span>
 </div>
 """, unsafe_allow_html=True)
-
-# Cargar cliente oficial Google GenAI y modelo activo
-client = get_genai_client()
-active_model = get_active_model_name(client)
 
 # Historial de conversación
 if "messages" not in st.session_state:
@@ -473,7 +463,7 @@ if active_prompt:
             st.session_state.messages.append({"role": "assistant", "content": reply})
         else:
             with st.spinner("NIA está consultando la información oficial de ISTCGE..."):
-                full_response = st.write_stream(stream_gemini_response(active_prompt, client, active_model))
+                full_response = st.write_stream(stream_gemini_response(active_prompt))
             st.session_state.messages.append({"role": "assistant", "content": full_response})
     
     st.rerun()
