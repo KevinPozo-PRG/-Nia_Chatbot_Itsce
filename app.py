@@ -8,7 +8,7 @@ load_dotenv()
 
 # --- CONFIGURACIÓN DE PÁGINA STREAMLIT ---
 st.set_page_config(
-    page_title="NIA | Asesora Comercial Oficial ISTCGE",
+    page_title="NIA | Asesora Comercial ISTCGE - ASCEND",
     page_icon="🎓",
     layout="centered",
     initial_sidebar_state="collapsed"
@@ -21,16 +21,19 @@ KNOWLEDGE_CONTEXT = """
 - Sitio Web Oficial: https://web.istcge.edu.ec/
 - Títulos: Títulos Oficiales de Tercer Nivel Tecnológico avalados por el Consejo de Educación Superior (CES) del Ecuador (registrados en SENESCYT).
 - Modalidad: 100% en línea (virtual, asincrónica y flexible, compatible con trabajo y responsabilidades familiares).
-- Slogan: «No solo estudies una carrera. Construye tu siguiente nivel».
+- Slogan y Filosofía: «No solo estudies una carrera. Construye tu siguiente nivel».
+- Metodología en 5 Fases: 1. Aprende -> 2. Aplica -> 3. Potencia (con IA) -> 4. Conecta (mentorías) -> 5. Asciende.
 
 2. OFERTA DE CARRERAS:
 A) TECNOLOGÍA SUPERIOR EN DESARROLLO DE SOFTWARE:
 - Título Oficial: Tecnólogo/a Superior en Desarrollo de Software (Tercer Nivel).
-- Beneficios: Programación desde cero, desarrollo web, aplicaciones móviles, bases de datos e Inteligencia Artificial aplicada con proyectos reales.
+- Lema: «Convierte problemas reales en soluciones digitales».
+- Beneficios: Programación desde cero, desarrollo web y móvil, bases de datos e Inteligencia Artificial aplicada con proyectos reales para armar tu portafolio.
 - Dirigido a: Bachilleres, programadores empíricos, autodidactas y técnicos que buscan título oficial y mejores ingresos.
 
 B) TECNOLOGÍA SUPERIOR EN VENTAS DIGITALES:
 - Título Oficial: Tecnólogo/a Superior en Ventas Digitales (Tercer Nivel).
+- Lema: «Convierte ideas, productos y oportunidades en resultados».
 - Beneficios: Estrategias omnicanal, embudos de venta (funnels), marketing digital, e-commerce y CRM para disparar ventas.
 - Dirigido a: Emprendedores, vendedores tradicionales, bachilleres y colaboradores comerciales.
 
@@ -55,7 +58,7 @@ def es_saludo_generico(text):
     clean = text.lower().strip().replace(".", "").replace("!", "").replace("¿", "").replace("?", "")
     return clean in SALUDOS_GENERICOS
 
-# --- MODELO CACHEADO ULTRA-RÁPIDO ---
+# --- MODELO CACHEADO GEMINI (OFICIAL 3.6-FLASH) ---
 @st.cache_resource
 def get_cached_gemini_model():
     api_key = os.getenv("GEMINI_API_KEY")
@@ -133,33 +136,36 @@ Recuerda responder como NIA, asesora comercial de ISTCGE, guiando al postulante 
     except Exception as e:
         yield f"Disculpa, ocurrió un inconveniente al conectar con el servidor: {str(e)}"
 
-# --- DISEÑO ULTRA-PREMIUM REACT / SAAS / TAILWIND ---
+# --- PALETA Y ESTILOS OFICIALES DEL SITIO ISTCGE ASCEND (DEL PDF OFICIAL) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-    /* Variables Globales */
+    /* Variables Oficiales ISTCGE ASCEND */
     :root {
-        --cge-navy: #002C5A;
-        --cge-blue: #0284C7;
-        --cge-cyan: #009ADE;
-        --cge-accent: #2563EB;
-        --cge-bg: #F8FAFC;
+        --cge-bg-dark: #050A18;
+        --cge-card-bg: #0B142B;
+        --cge-cyan: #00D2FF;
+        --cge-blue: #0072FF;
+        --cge-gold: #FDC901;
+        --cge-text-light: #F8FAFC;
+        --cge-text-muted: #94A3B8;
+        --cge-border: rgba(0, 210, 255, 0.25);
     }
 
-    /* Fondo de la Aplicación */
+    /* Fondo Deep Space Navy oficial */
     .stApp {
-        background: linear-gradient(180deg, #F0F4F8 0%, #FFFFFF 100%) !important;
+        background: radial-gradient(circle at 50% 0%, #0d1b3e 0%, #050a18 100%) !important;
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
-        color: #0F172A !important;
+        color: var(--cge-text-light) !important;
     }
 
-    /* Ocultar elementos nativos de Streamlit */
+    /* Ocultar barra superior y footer */
     header { visibility: hidden !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
 
-    /* Ocultar avatares predeterminados */
+    /* Ocultar avatares e iconos molestos */
     [data-testid="stChatMessageAvatarCustom"],
     [data-testid="stChatMessageAvatarUser"],
     [data-testid="stChatMessageAvatarAssistant"],
@@ -167,47 +173,47 @@ st.markdown("""
         display: none !important;
     }
 
-    /* Header Flotante Moderno estilo React / Tailwind */
-    .react-header-container {
+    /* Encabezado con paleta oficial ISTCGE ASCEND */
+    .ascend-header-card {
         max-width: 680px;
-        margin: 0 auto 16px auto;
+        margin: 0 auto 14px auto;
         padding: 16px 22px;
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(11, 20, 43, 0.85);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(0, 44, 90, 0.1);
-        border-radius: 20px;
-        box-shadow: 0 10px 25px -5px rgba(0, 44, 90, 0.06), 0 8px 10px -6px rgba(0, 44, 90, 0.04);
+        border: 1px solid var(--cge-border);
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 210, 255, 0.1);
         display: flex;
         align-items: center;
         justify-content: space-between;
     }
 
-    .react-header-left {
+    .ascend-header-left {
         display: flex;
         align-items: center;
         gap: 14px;
     }
 
-    .react-brand-avatar {
-        width: 46px;
-        height: 46px;
-        border-radius: 14px;
-        background: linear-gradient(135deg, #002C5A 0%, #009ADE 100%);
-        color: #ffffff;
+    .ascend-logo-badge {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #0072FF 0%, #00D2FF 100%);
+        color: #FFFFFF;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 800;
-        font-size: 15px;
-        box-shadow: 0 4px 12px rgba(0, 154, 222, 0.3);
+        font-size: 14px;
+        box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
         letter-spacing: 0.5px;
     }
 
-    .react-header-titles h1 {
+    .ascend-titles h1 {
         font-size: 16px !important;
         font-weight: 800 !important;
-        color: #002C5A !important;
+        color: #FFFFFF !important;
         margin: 0 !important;
         letter-spacing: -0.3px;
         display: flex;
@@ -215,70 +221,81 @@ st.markdown("""
         gap: 8px;
     }
 
-    .react-header-titles p {
-        color: #64748B !important;
+    .ascend-titles p {
+        color: var(--cge-text-muted) !important;
         font-size: 12.5px !important;
         margin: 2px 0 0 0 !important;
         font-weight: 500;
     }
 
-    .react-status-pill {
-        background: #ECFDF5;
-        color: #059669;
-        border: 1px solid #A7F3D0;
-        padding: 5px 12px;
+    .ascend-gold-pill {
+        background: linear-gradient(135deg, #FDC901, #EAB308);
+        color: #000000 !important;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 0 10px rgba(253, 201, 1, 0.3);
+    }
+
+    .ascend-status-pill {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34D399;
+        border: 1px solid rgba(52, 211, 153, 0.35);
+        padding: 4px 10px;
         border-radius: 30px;
-        font-size: 12px;
+        font-size: 11.5px;
         font-weight: 700;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        gap: 5px;
     }
 
     .pulse-dot {
-        width: 7px;
-        height: 7px;
+        width: 6px;
+        height: 6px;
         background-color: #10B981;
         border-radius: 50%;
-        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+        box-shadow: 0 0 8px #10B981;
     }
 
-    /* Burbujas de Chat Estilo Tarjeta SaaS */
+    /* Burbujas de Mensajes estilo Tarjeta Oscura Neón CGE */
     .stChatMessage {
         max-width: 680px !important;
         margin: 0 auto 10px auto !important;
-        background: #FFFFFF !important;
-        border: 1px solid #E2E8F0 !important;
-        border-radius: 18px !important;
+        background: rgba(11, 20, 43, 0.85) !important;
+        border: 1px solid rgba(0, 210, 255, 0.18) !important;
+        border-radius: 16px !important;
         padding: 14px 20px !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -2px rgba(0, 0, 0, 0.02) !important;
-        transition: transform 0.15s ease;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+        backdrop-filter: blur(10px);
     }
 
     .stChatMessage p, .stChatMessage li, .stChatMessage span {
-        color: #1E293B !important;
+        color: #F1F5F9 !important;
         font-size: 14.5px !important;
         line-height: 1.6 !important;
         font-weight: 450;
     }
 
     .stChatMessage strong {
-        color: #002C5A !important;
+        color: var(--cge-cyan) !important;
         font-weight: 700 !important;
     }
 
-    /* Botones de Sugerencias Rápidas Modernos */
+    /* Botones de Preguntas Frecuentes estilo ASCEND */
     div[data-testid="column"] {
         padding: 0 4px !important;
     }
 
     .stButton button {
-        background: #FFFFFF !important;
-        color: #1E293B !important;
-        border: 1px solid #CBD5E1 !important;
+        background: rgba(11, 20, 43, 0.75) !important;
+        color: #E2E8F0 !important;
+        border: 1px solid rgba(0, 210, 255, 0.3) !important;
         border-radius: 12px !important;
-        font-size: 13px !important;
+        font-size: 12.5px !important;
         font-weight: 600 !important;
         padding: 10px 14px !important;
         width: 100% !important;
@@ -286,19 +303,19 @@ st.markdown("""
         display: flex !important;
         align-items: center !important;
         justify-content: flex-start !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        transition: all 0.25s ease !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
     }
 
     .stButton button:hover {
-        border-color: #002C5A !important;
-        color: #002C5A !important;
-        background: #F0F7FF !important;
+        border-color: var(--cge-cyan) !important;
+        color: #FFFFFF !important;
+        background: linear-gradient(135deg, rgba(0, 114, 255, 0.4), rgba(0, 210, 255, 0.2)) !important;
         transform: translateY(-2px) !important;
-        box-shadow: 0 4px 10px rgba(0, 44, 90, 0.08) !important;
+        box-shadow: 0 0 15px rgba(0, 210, 255, 0.25) !important;
     }
 
-    /* Barra de Input Flotante Premium */
+    /* Barra de Input con Paleta Oficial e Iluminación Cyan */
     .stChatInputContainer,
     div[data-testid="stChatInput"],
     .stChatInput,
@@ -309,30 +326,31 @@ st.markdown("""
     }
 
     div[data-testid="stChatInput"] {
-        background: #FFFFFF !important;
-        border: 1.5px solid #CBD5E1 !important;
+        background: rgba(11, 20, 43, 0.95) !important;
+        border: 1.5px solid rgba(0, 210, 255, 0.4) !important;
         border-radius: 16px !important;
-        box-shadow: 0 10px 25px -5px rgba(0, 44, 90, 0.08) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 210, 255, 0.15) !important;
         overflow: hidden !important;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        transition: all 0.2s ease;
     }
 
     div[data-testid="stChatInput"]:focus-within {
-        border-color: #002C5A !important;
-        box-shadow: 0 10px 25px -5px rgba(0, 44, 90, 0.15), 0 0 0 3px rgba(0, 154, 222, 0.2) !important;
+        border-color: var(--cge-cyan) !important;
+        box-shadow: 0 0 20px rgba(0, 210, 255, 0.35) !important;
     }
 
+    /* TEXTO NÍTIDO BLANCO EN EL INPUT */
     .stChatInputContainer textarea,
     div[data-testid="stChatInput"] textarea,
     .stChatInput textarea,
     textarea[data-testid="stChatInputTextArea"],
     textarea.st-bk {
-        background-color: #FFFFFF !important;
-        color: #0F172A !important;
+        background-color: transparent !important;
+        color: #FFFFFF !important;
         font-size: 14.5px !important;
         font-weight: 500 !important;
-        caret-color: #002C5A !important;
-        -webkit-text-fill-color: #0F172A !important;
+        caret-color: var(--cge-cyan) !important;
+        -webkit-text-fill-color: #FFFFFF !important;
         opacity: 1 !important;
     }
 
@@ -346,17 +364,17 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- HEADER FLOTANTE ULTRA-MODERNO ESTILO REACT ---
+# --- HEADER OFICIAL ISTCGE ASCEND ---
 st.markdown("""
-<div class="react-header-container">
-    <div class="react-header-left">
-        <div class="react-brand-avatar">CGE</div>
-        <div class="react-header-titles">
-            <h1>NIA • Asesora Oficial ISTCGE</h1>
-            <p>Instituto Superior Tecnológico CGE • Admisiones 100% Online</p>
+<div class="ascend-header-card">
+    <div class="ascend-header-left">
+        <div class="ascend-logo-badge">CGE</div>
+        <div class="ascend-titles">
+            <h1>NIA • Asesora Oficial ISTCGE <span class="ascend-gold-pill">CES</span></h1>
+            <p>Ecosistema Formativo ASCEND • Carreras Oficiales 100% Online</p>
         </div>
     </div>
-    <span class="react-status-pill">
+    <span class="ascend-status-pill">
         <span class="pulse-dot"></span>
         En línea
     </span>
@@ -371,7 +389,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = [
         {
             "role": "assistant",
-            "content": "¡Hola! Te saluda **NIA**, asesora comercial de admisiones del **Instituto Superior Tecnológico CGE (ISTCGE)** y nuestro ecosistema **ASCEND**.\n\n¿Listo para dar el siguiente salto profesional? Te ayudo a elegir tu carrera oficial de tercer nivel 100% en línea:\n\n* **Tecnología Superior en Desarrollo de Software** *(Alta demanda y excelentes ingresos)*\n* **Tecnología Superior en Ventas Digitales** *(Domina e-commerce, funnels y cierre omnicanal)*\n* **Homologación de Experiencia Laboral** *(¡Convalida lo que ya sabes y titúlate en menor tiempo!)*\n* **Test Vocacional Gratuito** *(Descubre tu perfil en 3 minutos)*\n\n¿En cuál de estas opciones te gustaría recibir información detallada sobre requisitos o facilidades de pago?"
+            "content": "¡Hola! Te saluda **NIA**, asesora comercial de admisiones del **Instituto Superior Tecnológico CGE (ISTCGE)** y nuestro ecosistema **ASCEND**.\n\n¿Listo para construir tu siguiente nivel profesional? Te ayudo a elegir tu carrera oficial de tercer nivel 100% en línea:\n\n* **Tecnología Superior en Desarrollo de Software** *(Alta demanda, bases de datos y desarrollo con IA)*\n* **Tecnología Superior en Ventas Digitales** *(Domina e-commerce, funnels y cierre omnicanal)*\n* **Homologación de Experiencia Laboral** *(¡Convalida tus conocimientos y titúlate en menor tiempo!)*\n* **Test Vocacional Gratuito** *(Descubre tu perfil afín en 3 minutos)*\n\n¿En cuál de nuestras opciones te gustaría recibir información sobre requisitos o facilidades de pago?"
         }
     ]
 
@@ -386,7 +404,7 @@ selected_prompt = None
 if len(st.session_state.messages) <= 1:
     st.markdown("""
     <div style="max-width: 680px; margin: 4px auto 8px auto;">
-        <p style="font-size: 12.5px; color: #64748B; margin: 0 0 6px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+        <p style="font-size: 12px; color: #94A3B8; margin: 0 0 6px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
             Consultas rápidas:
         </p>
     </div>
