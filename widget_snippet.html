@@ -1,0 +1,147 @@
+<!-- =======================================================================
+     SNIPPET LISTO PARA COPIAR Y PEGAR EN CUALQUIER SITIO WEB / WORDPRESS
+     WIDGET FLOTANTE DE CHATBOT NIA - ISTCGE
+     ======================================================================= -->
+
+<!-- Estilos del Widget -->
+<style>
+.nia-widget-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #002c5a 0%, #009ade 100%);
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0, 44, 90, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    z-index: 999999;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.nia-widget-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 12px 30px rgba(0, 154, 222, 0.45);
+}
+.nia-widget-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background-color: #ef4444;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+}
+.nia-widget-modal {
+    position: fixed;
+    bottom: 96px;
+    right: 24px;
+    width: 420px;
+    max-width: calc(100vw - 32px);
+    height: 640px;
+    max-height: calc(100vh - 120px);
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    z-index: 999999;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nia-widget-modal.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+.nia-widget-header {
+    background-color: #002c5a;
+    color: #ffffff;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+.nia-widget-title h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0;
+    color: #ffffff;
+}
+.nia-widget-title span {
+    font-size: 11.5px;
+    color: #93c5fd;
+}
+.nia-widget-close {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #ffffff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+.nia-widget-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+.nia-widget-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    flex: 1;
+}
+</style>
+
+<!-- Botón Flotante -->
+<button class="nia-widget-btn" id="niaWidgetBtn" onclick="toggleNiaWidget()" title="Hablar con NIA">
+    💬
+    <span class="nia-widget-badge">1</span>
+</button>
+
+<!-- Ventana Modal con NIA -->
+<div class="nia-widget-modal" id="niaWidgetModal">
+    <div class="nia-widget-header">
+        <div class="nia-widget-title">
+            <h4>NIA • Asesora Comercial ISTCGE</h4>
+            <span>En línea • Respuesta inmediata</span>
+        </div>
+        <button class="nia-widget-close" onclick="toggleNiaWidget()">✕</button>
+    </div>
+    <iframe 
+        class="nia-widget-iframe"
+        src="https://nia-chatbot-itsce.streamlit.app/?embed=true"
+        allow="clipboard-read; clipboard-write">
+    </iframe>
+</div>
+
+<!-- Script -->
+<script>
+function toggleNiaWidget() {
+    const modal = document.getElementById('niaWidgetModal');
+    const badge = document.querySelector('.nia-widget-badge');
+    modal.classList.toggle('open');
+    if (modal.classList.contains('open') && badge) {
+        badge.style.display = 'none';
+    }
+}
+</script>

@@ -8,7 +8,7 @@ load_dotenv()
 
 # --- CONFIGURACIÓN DE PÁGINA STREAMLIT ---
 st.set_page_config(
-    page_title="NIA | Asesora Comercial ISTCGE",
+    page_title="NIA | Asesora Comercial Oficial ISTCGE",
     page_icon="🎓",
     layout="centered",
     initial_sidebar_state="collapsed"
@@ -55,7 +55,7 @@ def es_saludo_generico(text):
     clean = text.lower().strip().replace(".", "").replace("!", "").replace("¿", "").replace("?", "")
     return clean in SALUDOS_GENERICOS
 
-# --- SISTEMA DE RESOLUCIÓN DE MODELOS GEMINI (OFICIAL 3.6-FLASH) ---
+# --- MODELO CACHEADO ULTRA-RÁPIDO ---
 @st.cache_resource
 def get_cached_gemini_model():
     api_key = os.getenv("GEMINI_API_KEY")
@@ -85,7 +85,6 @@ INFORMACIÓN INSTITUCIONAL Y COMERCIAL:
 {KNOWLEDGE_CONTEXT}
 """
 
-    # Modelos oficiales ordenados por versión actual recomendada por Google
     models_to_try = [
         "models/gemini-3.6-flash",
         "gemini-3.6-flash",
@@ -93,8 +92,7 @@ INFORMACIÓN INSTITUCIONAL Y COMERCIAL:
         "gemini-2.0-flash",
         "models/gemini-1.5-flash",
         "gemini-1.5-flash",
-        "models/gemini-pro",
-        "gemini-pro"
+        "models/gemini-pro"
     ]
 
     for model_name in models_to_try:
@@ -103,7 +101,6 @@ INFORMACIÓN INSTITUCIONAL Y COMERCIAL:
                 model_name=model_name,
                 system_instruction=system_instruction
             )
-            # Prueba de verificación
             model.generate_content("test", generation_config={"max_output_tokens": 1})
             return model
         except Exception:
@@ -116,7 +113,7 @@ INFORMACIÓN INSTITUCIONAL Y COMERCIAL:
 
     return genai.GenerativeModel(model_name="models/gemini-3.6-flash")
 
-# --- GENERADOR DE STREAMING PARA RESPUESTAS EN TIEMPO REAL ---
+# --- GENERADOR DE STREAMING EN TIEMPO REAL ---
 def stream_gemini_response(prompt_text, model):
     if model is None:
         yield "⚠️ Por favor configura tu clave 'GEMINI_API_KEY' en los Secrets de Streamlit."
@@ -136,22 +133,33 @@ Recuerda responder como NIA, asesora comercial de ISTCGE, guiando al postulante 
     except Exception as e:
         yield f"Disculpa, ocurrió un inconveniente al conectar con el servidor: {str(e)}"
 
-# --- ESTILOS VISUALES: MINIMALISTA, SIN ÍCONOS, TEXTO DE INPUT 100% VISIBLE ---
+# --- DISEÑO ULTRA-PREMIUM REACT / SAAS / TAILWIND ---
 st.markdown("""
     <style>
-    /* Estilos generales limpios */
-    .stApp {
-        background-color: #f9fafb !important;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
-        color: #111827 !important;
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+    /* Variables Globales */
+    :root {
+        --cge-navy: #002C5A;
+        --cge-blue: #0284C7;
+        --cge-cyan: #009ADE;
+        --cge-accent: #2563EB;
+        --cge-bg: #F8FAFC;
     }
 
-    /* Ocultar barra superior y pie de página de Streamlit */
+    /* Fondo de la Aplicación */
+    .stApp {
+        background: linear-gradient(180deg, #F0F4F8 0%, #FFFFFF 100%) !important;
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        color: #0F172A !important;
+    }
+
+    /* Ocultar elementos nativos de Streamlit */
     header { visibility: hidden !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
 
-    /* Ocultar avatares e íconos */
+    /* Ocultar avatares predeterminados */
     [data-testid="stChatMessageAvatarCustom"],
     [data-testid="stChatMessageAvatarUser"],
     [data-testid="stChatMessageAvatarAssistant"],
@@ -159,115 +167,159 @@ st.markdown("""
         display: none !important;
     }
 
-    /* Encabezado Corporativo */
-    .cge-card-header {
+    /* Header Flotante Moderno estilo React / Tailwind */
+    .react-header-container {
         max-width: 680px;
-        margin: 0 auto 12px auto;
-        padding: 14px 18px;
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        margin: 0 auto 16px auto;
+        padding: 16px 22px;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(0, 44, 90, 0.1);
+        border-radius: 20px;
+        box-shadow: 0 10px 25px -5px rgba(0, 44, 90, 0.06), 0 8px 10px -6px rgba(0, 44, 90, 0.04);
         display: flex;
         align-items: center;
         justify-content: space-between;
     }
 
-    .cge-header-titles h1 {
-        font-size: 15px !important;
-        font-weight: 700 !important;
-        color: #111827 !important;
-        margin: 0 !important;
-        line-height: 1.2;
+    .react-header-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
     }
 
-    .cge-header-titles p {
-        color: rgb(107, 114, 128) !important;
+    .react-brand-avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #002C5A 0%, #009ADE 100%);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 15px;
+        box-shadow: 0 4px 12px rgba(0, 154, 222, 0.3);
+        letter-spacing: 0.5px;
+    }
+
+    .react-header-titles h1 {
+        font-size: 16px !important;
+        font-weight: 800 !important;
+        color: #002C5A !important;
+        margin: 0 !important;
+        letter-spacing: -0.3px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .react-header-titles p {
+        color: #64748B !important;
         font-size: 12.5px !important;
         margin: 2px 0 0 0 !important;
+        font-weight: 500;
     }
 
-    .cge-badge-status {
-        background-color: #ecfdf5;
+    .react-status-pill {
+        background: #ECFDF5;
         color: #059669;
-        border: 1px solid #a7f3d0;
-        padding: 3px 9px;
-        border-radius: 20px;
-        font-size: 11.5px;
-        font-weight: 600;
+        border: 1px solid #A7F3D0;
+        padding: 5px 12px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 700;
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 6px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
     }
 
-    .status-dot {
-        width: 6px;
-        height: 6px;
-        background-color: #10b981;
+    .pulse-dot {
+        width: 7px;
+        height: 7px;
+        background-color: #10B981;
         border-radius: 50%;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
     }
 
-    /* Mensajes del chat */
+    /* Burbujas de Chat Estilo Tarjeta SaaS */
     .stChatMessage {
         max-width: 680px !important;
-        margin: 0 auto 8px auto !important;
-        background-color: #ffffff !important;
-        border: 1px solid #e5e7eb !important;
-        border-radius: 12px !important;
-        padding: 12px 16px !important;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+        margin: 0 auto 10px auto !important;
+        background: #FFFFFF !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 18px !important;
+        padding: 14px 20px !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -2px rgba(0, 0, 0, 0.02) !important;
+        transition: transform 0.15s ease;
     }
 
     .stChatMessage p, .stChatMessage li, .stChatMessage span {
-        color: #1f2937 !important;
-        font-size: 14px !important;
-        line-height: 1.55 !important;
+        color: #1E293B !important;
+        font-size: 14.5px !important;
+        line-height: 1.6 !important;
+        font-weight: 450;
     }
 
     .stChatMessage strong {
-        color: #002c5a !important;
-        font-weight: 600 !important;
+        color: #002C5A !important;
+        font-weight: 700 !important;
     }
 
-    /* Botones de preguntas frecuentes */
+    /* Botones de Sugerencias Rápidas Modernos */
     div[data-testid="column"] {
-        padding: 0 3px !important;
+        padding: 0 4px !important;
     }
 
     .stButton button {
-        background-color: #ffffff !important;
-        color: #374151 !important;
-        border: 1px solid #e5e7eb !important;
-        border-radius: 8px !important;
-        font-size: 12.5px !important;
-        font-weight: 500 !important;
-        padding: 7px 10px !important;
+        background: #FFFFFF !important;
+        color: #1E293B !important;
+        border: 1px solid #CBD5E1 !important;
+        border-radius: 12px !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        padding: 10px 14px !important;
         width: 100% !important;
         text-align: left !important;
-        display: block !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
 
     .stButton button:hover {
-        border-color: #002c5a !important;
-        color: #002c5a !important;
-        background-color: #f8fafc !important;
+        border-color: #002C5A !important;
+        color: #002C5A !important;
+        background: #F0F7FF !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 10px rgba(0, 44, 90, 0.08) !important;
     }
 
-    /* --- FIX TOTAL PARA VISIBILIDAD DE TEXTO EN EL INPUT --- */
+    /* Barra de Input Flotante Premium */
     .stChatInputContainer,
     div[data-testid="stChatInput"],
     .stChatInput,
     [data-testid="stBottomBlockContainer"] {
         max-width: 680px !important;
         margin: 0 auto !important;
-        background-color: #ffffff !important;
+        background-color: transparent !important;
     }
 
     div[data-testid="stChatInput"] {
-        border: 1px solid #94a3b8 !important;
-        border-radius: 12px !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+        background: #FFFFFF !important;
+        border: 1.5px solid #CBD5E1 !important;
+        border-radius: 16px !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 44, 90, 0.08) !important;
         overflow: hidden !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    div[data-testid="stChatInput"]:focus-within {
+        border-color: #002C5A !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 44, 90, 0.15), 0 0 0 3px rgba(0, 154, 222, 0.2) !important;
     }
 
     .stChatInputContainer textarea,
@@ -275,34 +327,37 @@ st.markdown("""
     .stChatInput textarea,
     textarea[data-testid="stChatInputTextArea"],
     textarea.st-bk {
-        background-color: #ffffff !important;
-        color: #0f172a !important;
+        background-color: #FFFFFF !important;
+        color: #0F172A !important;
         font-size: 14.5px !important;
         font-weight: 500 !important;
-        caret-color: #002c5a !important;
-        -webkit-text-fill-color: #0f172a !important;
+        caret-color: #002C5A !important;
+        -webkit-text-fill-color: #0F172A !important;
         opacity: 1 !important;
     }
 
     .stChatInputContainer textarea::placeholder,
     div[data-testid="stChatInput"] textarea::placeholder,
     textarea[data-testid="stChatInputTextArea"]::placeholder {
-        color: #64748b !important;
-        -webkit-text-fill-color: #64748b !important;
-        opacity: 1 !important;
+        color: #94A3B8 !important;
+        -webkit-text-fill-color: #94A3B8 !important;
+        font-weight: 450;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- ENCABEZADO MINIMALISTA PROFESIONAL ---
+# --- HEADER FLOTANTE ULTRA-MODERNO ESTILO REACT ---
 st.markdown("""
-<div class="cge-card-header">
-    <div class="cge-header-titles">
-        <h1>NIA • Asesora Comercial ISTCGE</h1>
-        <p>Instituto Superior Tecnológico CGE • Admisiones 100% Online</p>
+<div class="react-header-container">
+    <div class="react-header-left">
+        <div class="react-brand-avatar">CGE</div>
+        <div class="react-header-titles">
+            <h1>NIA • Asesora Oficial ISTCGE</h1>
+            <p>Instituto Superior Tecnológico CGE • Admisiones 100% Online</p>
+        </div>
     </div>
-    <span class="cge-badge-status">
-        <span class="status-dot"></span>
+    <span class="react-status-pill">
+        <span class="pulse-dot"></span>
         En línea
     </span>
 </div>
@@ -316,7 +371,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = [
         {
             "role": "assistant",
-            "content": "¡Hola! Te saluda **NIA**, asesora comercial de admisiones del **Instituto Superior Tecnológico CGE (ISTCGE)**.\n\nTe ayudo a elegir tu carrera de tercer nivel tecnológico 100% en línea:\n\n* **Tecnología Superior en Desarrollo de Software**\n* **Tecnología Superior en Ventas Digitales**\n* **Homologación y Validación de Experiencia Laboral** *(titulación acelerada)*\n* **Test Vocacional Gratuito**\n\n¿En cuál de nuestras opciones te gustaría recibir información sobre requisitos, plan de estudios o facilidades de pago?"
+            "content": "¡Hola! Te saluda **NIA**, asesora comercial de admisiones del **Instituto Superior Tecnológico CGE (ISTCGE)** y nuestro ecosistema **ASCEND**.\n\n¿Listo para dar el siguiente salto profesional? Te ayudo a elegir tu carrera oficial de tercer nivel 100% en línea:\n\n* **Tecnología Superior en Desarrollo de Software** *(Alta demanda y excelentes ingresos)*\n* **Tecnología Superior en Ventas Digitales** *(Domina e-commerce, funnels y cierre omnicanal)*\n* **Homologación de Experiencia Laboral** *(¡Convalida lo que ya sabes y titúlate en menor tiempo!)*\n* **Test Vocacional Gratuito** *(Descubre tu perfil en 3 minutos)*\n\n¿En cuál de estas opciones te gustaría recibir información detallada sobre requisitos o facilidades de pago?"
         }
     ]
 
@@ -330,8 +385,8 @@ selected_prompt = None
 
 if len(st.session_state.messages) <= 1:
     st.markdown("""
-    <div style="max-width: 680px; margin: 4px auto 6px auto;">
-        <p style="font-size: 12px; color: rgb(107, 114, 128); margin: 0 0 4px 0; font-weight: 500;">
+    <div style="max-width: 680px; margin: 4px auto 8px auto;">
+        <p style="font-size: 12.5px; color: #64748B; margin: 0 0 6px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
             Consultas rápidas:
         </p>
     </div>
