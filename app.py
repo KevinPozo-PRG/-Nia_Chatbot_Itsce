@@ -91,26 +91,44 @@ def get_genai_client():
     except Exception:
         return None
 
-# --- GENERADOR DE STREAMING DE ALTA DISPONIBILIDAD ---
-def stream_gemini_response(prompt_text, client):
+# --- DESCUBRIMIENTO DINÁMICO DEL MODELO ACTIVO EN LA CUENTA ---
+@st.cache_resource
+def get_active_model_name(_client):
+    if not _client:
+        return "gemini-2.0-flash"
+    try:
+        available = []
+        for m in _client.models.list():
+            name = m.name.replace("models/", "") if hasattr(m, 'name') else str(m)
+            available.append(name)
+        
+        # Priorizar modelos estables
+        for pref in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-flash-lite", "gemini-1.5-pro"]:
+            if pref in available or f"models/{pref}" in available:
+                return pref
+        if available:
+            return available[0]
+    except Exception:
+        pass
+    return "gemini-2.0-flash"
+
+# --- GENERADOR DE STREAMING RESILIENTE ---
+def stream_gemini_response(prompt_text, client, active_model):
     if not client:
         yield "⚠️ Por favor configura tu clave 'GEMINI_API_KEY' en los Secrets de Streamlit."
         return
 
     full_prompt = f"{SYSTEM_INSTRUCTION}\n\n[CONSULTA DEL PROSPECTO]:\n{prompt_text}"
 
-    # Lista de modelos con compatibilidad garantizada
-    models_to_try = [
-        "gemini-2.0-flash",
-        "gemini-1.5-flash",
-        "gemini-2.0-flash-lite",
-        "gemini-1.5-flash-8b",
-        "gemini-1.5-pro",
-        "gemini-pro"
-    ]
+    # Probar en orden sin modelos obsoletos como gemini-pro
+    models_to_try = [active_model, "gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-flash-lite"]
+    unique_models = []
+    for m in models_to_try:
+        if m and m not in unique_models:
+            unique_models.append(m)
 
-    last_error_msg = ""
-    for model_name in models_to_try:
+    last_err = ""
+    for model_name in unique_models:
         try:
             response = client.models.generate_content_stream(
                 model=model_name,
@@ -124,10 +142,10 @@ def stream_gemini_response(prompt_text, client):
             if has_emitted:
                 return
         except Exception as e:
-            last_error_msg = str(e)
+            last_err = str(e)
             continue
 
-    yield f"Disculpa, ocurrió un inconveniente con el servicio: {last_error_msg}"
+    yield f"Disculpa, ocurrió un inconveniente momentáneo con el servicio de IA. Por favor reintenta en un segundo."
 
 # --- ESTILOS VISUALES: GAMA OFICIAL SITIO ISTCGE ASCEND + SPINNER CYAN ---
 st.markdown("""
@@ -397,8 +415,9 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Cargar cliente oficial Google GenAI
+# Cargar cliente oficial Google GenAI y modelo activo
 client = get_genai_client()
+active_model = get_active_model_name(client)
 
 # Historial de conversación
 if "messages" not in st.session_state:
@@ -453,9 +472,8 @@ if active_prompt:
             st.markdown(reply)
             st.session_state.messages.append({"role": "assistant", "content": reply})
         else:
-            # Mensaje de estado ("NIA está consultando la información oficial...") antes de emitir respuesta
             with st.spinner("NIA está consultando la información oficial de ISTCGE..."):
-                full_response = st.write_stream(stream_gemini_response(active_prompt, client))
+                full_response = st.write_stream(stream_gemini_response(active_prompt, client, active_model))
             st.session_state.messages.append({"role": "assistant", "content": full_response})
     
     st.rerun()
