@@ -1,7 +1,8 @@
 import streamlit as st
 import os
-import google.generativeai as genai
 from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 
 # Carga de variables de entorno
 load_dotenv()
@@ -52,25 +53,7 @@ B) TECNOLOGÍA SUPERIOR EN VENTAS DIGITALES:
 - Asesoría: Invitar a iniciar la matrícula o solicitar contacto por WhatsApp con un asesor oficial.
 """
 
-SALUDOS_GENERICOS = ["hola", "buenos dias", "buenas tardes", "buenas noches", "saludos", "hola!", "holaa", "buenas", "que tal", "hola nia", "info", "informacion", "precio", "costo"]
-
-def es_saludo_generico(text):
-    clean = text.lower().strip().replace(".", "").replace("!", "").replace("¿", "").replace("?", "")
-    return clean in SALUDOS_GENERICOS
-
-# --- MODELO CACHEADO GEMINI (OFICIAL 3.6-FLASH) ---
-@st.cache_resource
-def get_cached_gemini_model():
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key and "GEMINI_API_KEY" in st.secrets:
-        api_key = st.secrets["GEMINI_API_KEY"]
-
-    if not api_key:
-        return None
-
-    genai.configure(api_key=api_key)
-
-    system_instruction = f"""
+SYSTEM_INSTRUCTION = f"""
 Eres NIA, la Asesora Comercial de Admisiones y Ventas del Instituto Superior Tecnológico CGE (ISTCGE) y su plataforma educativa ASCEND.
 Sitio web oficial: https://web.istcge.edu.ec/
 
@@ -88,55 +71,65 @@ INFORMACIÓN INSTITUCIONAL Y COMERCIAL:
 {KNOWLEDGE_CONTEXT}
 """
 
+SALUDOS_GENERICOS = ["hola", "buenos dias", "buenas tardes", "buenas noches", "saludos", "hola!", "holaa", "buenas", "que tal", "hola nia", "info", "informacion", "precio", "costo"]
+
+def es_saludo_generico(text):
+    clean = text.lower().strip().replace(".", "").replace("!", "").replace("¿", "").replace("?", "")
+    return clean in SALUDOS_GENERICOS
+
+# --- CLIENTE GENAI OFICIAL V2+ CON CLIENT CACHING ---
+@st.cache_resource
+def get_genai_client():
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key and "GEMINI_API_KEY" in st.secrets:
+        api_key = st.secrets["GEMINI_API_KEY"]
+
+    if not api_key:
+        return None
+
+    return genai.Client(api_key=api_key)
+
+# --- GENERADOR DE STREAMING CON ROTACIÓN AUTOMÁTICA DE MODELOS (EVITA RATE LIMITS 429) ---
+def stream_gemini_response(prompt_text, client):
+    if not client:
+        yield "⚠️ Por favor configura tu clave 'GEMINI_API_KEY' en los Secrets de Streamlit."
+        return
+
+    config = types.GenerateContentConfig(
+        system_instruction=SYSTEM_INSTRUCTION,
+        temperature=0.7,
+    )
+
+    # Modelos con alta cuota gratuita (1,500 solicitudes/día y 15 RPM)
     models_to_try = [
-        "models/gemini-3.6-flash",
-        "gemini-3.6-flash",
-        "models/gemini-2.0-flash",
         "gemini-2.0-flash",
-        "models/gemini-1.5-flash",
         "gemini-1.5-flash",
-        "models/gemini-pro"
+        "gemini-2.0-flash-lite",
+        "gemini-1.5-flash-8b",
+        "gemini-1.5-pro"
     ]
 
     for model_name in models_to_try:
         try:
-            model = genai.GenerativeModel(
-                model_name=model_name,
-                system_instruction=system_instruction
+            response = client.models.generate_content_stream(
+                model=model_name,
+                contents=prompt_text,
+                config=config
             )
-            model.generate_content("test", generation_config={"max_output_tokens": 1})
-            return model
+            has_emitted = False
+            for chunk in response:
+                if chunk.text:
+                    has_emitted = True
+                    yield chunk.text
+            if has_emitted:
+                return
         except Exception:
-            try:
-                model_alt = genai.GenerativeModel(model_name=model_name)
-                model_alt.generate_content("test", generation_config={"max_output_tokens": 1})
-                return model_alt
-            except Exception:
-                continue
+            # Si un modelo alcanza límite 429 o error, pasa de inmediato al siguiente modelo en milisegundos
+            continue
 
-    return genai.GenerativeModel(model_name="models/gemini-3.6-flash")
+    yield "Disculpa, nuestros servidores de asesoría están procesando un alto volumen de consultas. Por favor repite tu mensaje en un instante o déjanos contactarte por WhatsApp."
 
-# --- GENERADOR DE STREAMING EN TIEMPO REAL ---
-def stream_gemini_response(prompt_text, model):
-    if model is None:
-        yield "⚠️ Por favor configura tu clave 'GEMINI_API_KEY' en los Secrets de Streamlit."
-        return
-
-    try:
-        full_prompt = f"""
-[CONSULTA DEL PROSPECTO]:
-{prompt_text}
-
-Recuerda responder como NIA, asesora comercial de ISTCGE, guiando al postulante con la información oficial de las carreras y orientándolo hacia la matrícula o el contacto por WhatsApp.
-"""
-        response = model.generate_content(full_prompt, stream=True)
-        for chunk in response:
-            if chunk.text:
-                yield chunk.text
-    except Exception as e:
-        yield f"Disculpa, ocurrió un inconveniente al conectar con el servidor: {str(e)}"
-
-# --- ESTILOS VISUALES: GAMA OFICIAL SITIO ISTCGE ASCEND + INPUT 100% INTEGRADO ---
+# --- PALETA Y ESTILOS OFICIALES DEL SITIO ISTCGE ASCEND ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -152,7 +145,7 @@ st.markdown("""
         --cge-border: rgba(0, 210, 255, 0.28);
     }
 
-    /* Fondo principal */
+    /* Fondo principal Deep Space */
     .stApp {
         background: radial-gradient(circle at 50% 0%, #0d1b3e 0%, #050a18 100%) !important;
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
@@ -314,10 +307,7 @@ st.markdown("""
         box-shadow: 0 0 15px rgba(0, 210, 255, 0.3) !important;
     }
 
-    /* =========================================================================
-       ELIMINACIÓN DE LA FRANJA BLANCA INFERIOR Y ESTILO 100% INTEGRADO DEL INPUT
-       ========================================================================= */
-    /* 1. Eliminar cualquier franja blanca del footer/bottom de Streamlit */
+    /* Eliminación de franjas y estilo integrado del input */
     [data-testid="stBottomBlockContainer"],
     [data-testid="stBottomBlockContainer"] > div,
     .stChatFloatingInputContainer,
@@ -336,7 +326,6 @@ st.markdown("""
         background: transparent !important;
     }
 
-    /* 2. Recuadro del Input: Color azul oscuro con borde cian brillante */
     div[data-testid="stChatInput"] {
         background-color: #0B142B !important;
         border: 1.5px solid #00D2FF !important;
@@ -351,7 +340,7 @@ st.markdown("""
         box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5), 0 0 25px rgba(0, 210, 255, 0.5) !important;
     }
 
-    /* 3. TEXTO AL ESCRIBIR: BLANCO PURO Y TOTALMENTE NÍTIDO */
+    /* Texto blanco puro y nítido al escribir */
     .stChatInputContainer textarea,
     div[data-testid="stChatInput"] textarea,
     .stChatInput textarea,
@@ -366,7 +355,6 @@ st.markdown("""
         opacity: 1 !important;
     }
 
-    /* 4. Placeholder */
     .stChatInputContainer textarea::placeholder,
     div[data-testid="stChatInput"] textarea::placeholder,
     textarea[data-testid="stChatInputTextArea"]::placeholder {
@@ -375,7 +363,6 @@ st.markdown("""
         font-weight: 400 !important;
     }
 
-    /* 5. Botón de enviar */
     div[data-testid="stChatInput"] button {
         color: #00D2FF !important;
         background: transparent !important;
@@ -400,8 +387,8 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Cargar modelo verificado (gemini-3.6-flash)
-model = get_cached_gemini_model()
+# Cargar cliente oficial Google GenAI
+client = get_genai_client()
 
 # Historial de conversación
 if "messages" not in st.session_state:
@@ -456,8 +443,8 @@ if active_prompt:
             st.markdown(reply)
             st.session_state.messages.append({"role": "assistant", "content": reply})
         else:
-            # Respuesta instantánea con Streaming en tiempo real
-            full_response = st.write_stream(stream_gemini_response(active_prompt, model))
+            # Respuesta instantánea con Streaming en tiempo real vía google.genai con rotación multi-modelo
+            full_response = st.write_stream(stream_gemini_response(active_prompt, client))
             st.session_state.messages.append({"role": "assistant", "content": full_response})
     
     st.rerun()
