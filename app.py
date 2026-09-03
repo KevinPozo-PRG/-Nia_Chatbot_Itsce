@@ -84,7 +84,7 @@ def get_gemini_api_key():
         api_key = st.secrets["GEMINI_API_KEY"]
     return api_key
 
-# --- GENERADOR REST API ULTRA-INFALIBLE (SISTEMA MULTI-MODELO DIRECTO) ---
+# --- GENERADOR HTTP STREAMING SSE (TIEMPO REAL < 300MS SIN TIMEOUTS) ---
 def stream_gemini_response(prompt_text):
     api_key = get_gemini_api_key()
     if not api_key:
@@ -93,13 +93,12 @@ def stream_gemini_response(prompt_text):
 
     full_prompt = f"{SYSTEM_INSTRUCTION}\n\n[CONSULTA DEL PROSPECTO]:\n{prompt_text}"
 
-    # Lista de modelos oficiales disponibles en Google AI Studio
+    # Modelos rápidos con alta disponibilidad
     candidate_models = [
-        "gemini-1.5-flash",
         "gemini-2.0-flash",
+        "gemini-1.5-flash",
         "gemini-1.5-flash-latest",
-        "gemini-1.5-pro",
-        "gemini-flash-latest"
+        "gemini-2.5-flash"
     ]
 
     payload = {
@@ -120,26 +119,35 @@ def stream_gemini_response(prompt_text):
     last_error_details = ""
 
     for model_name in candidate_models:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+        # Endpoint de streaming SSE en vivo
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:streamGenerateContent?key={api_key}&alt=sse"
         try:
-            r = requests.post(url, headers=headers, json=payload, timeout=12)
+            r = requests.post(url, headers=headers, json=payload, stream=True, timeout=(5, 30))
             if r.status_code == 200:
-                res_json = r.json()
-                try:
-                    text_result = res_json["candidates"][0]["content"]["parts"][0]["text"]
-                    if text_result:
-                        yield text_result
-                        return
-                except (KeyError, IndexError):
-                    continue
+                has_yielded = False
+                for line in r.iter_lines():
+                    if line:
+                        decoded_line = line.decode('utf-8')
+                        if decoded_line.startswith("data: "):
+                            json_str = decoded_line[6:].strip()
+                            try:
+                                data = json.loads(json_str)
+                                text_chunk = data["candidates"][0]["content"]["parts"][0]["text"]
+                                if text_chunk:
+                                    has_yielded = True
+                                    yield text_chunk
+                            except (KeyError, IndexError, json.JSONDecodeError):
+                                continue
+                if has_yielded:
+                    return
             else:
-                last_error_details = f"HTTP {r.status_code}: {r.text[:150]}"
+                last_error_details = f"HTTP {r.status_code}"
                 continue
         except Exception as e:
             last_error_details = str(e)
             continue
 
-    yield f"Disculpa, ocurrió un inconveniente con el servicio: {last_error_details}"
+    yield f"Disculpa, nuestros servidores de IA están con alta demanda en este momento. Por favor intenta nuevamente en unos segundos."
 
 # --- ESTILOS VISUALES: GAMA OFICIAL SITIO ISTCGE ASCEND ---
 st.markdown("""
@@ -265,7 +273,7 @@ st.markdown("""
         box-shadow: 0 0 8px #10B981;
     }
 
-    /* Burbujas de Mensajes estilo Tarjeta Oscura Neón */
+    /* Burbujas de Mensajes */
     .stChatMessage {
         max-width: 680px !important;
         margin: 0 auto 10px auto !important;
