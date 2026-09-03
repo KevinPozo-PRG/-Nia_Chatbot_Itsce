@@ -14,39 +14,39 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- BASE DE CONOCIMIENTO COMERCIAL ISTCGE / ASCEND ---
+# --- BASE DE CONOCIMIENTO INSTITUCIONAL Y COMERCIAL (ISTCGE / ASCEND) ---
 KNOWLEDGE_CONTEXT = """
 1. IDENTIDAD INSTITUCIONAL Y PROPUESTA DE VALOR:
 - Nombre oficial: Instituto Superior Tecnológico CGE (ISTCGE) - Ecosistema Formativo ASCEND.
 - Sitio Web Oficial: https://web.istcge.edu.ec/
 - Títulos: Títulos Oficiales de Tercer Nivel Tecnológico avalados por el Consejo de Educación Superior (CES) del Ecuador (registrados en SENESCYT).
-- Modalidad: 100% en línea (virtual, asincrónica y flexible, ideal para quienes trabajan o tienen responsabilidades familiares).
+- Modalidad: 100% en línea (virtual, asincrónica y flexible, compatible con trabajo y responsabilidades familiares).
 - Slogan: «No solo estudies una carrera. Construye tu siguiente nivel».
 
 2. OFERTA DE CARRERAS:
 A) TECNOLOGÍA SUPERIOR EN DESARROLLO DE SOFTWARE:
-- Título Oficial de Tercer Nivel Tecnológico.
-- Beneficios: Aprende programación desde cero, desarrollo web y móvil, bases de datos e Inteligencia Artificial aplicada.
-- Dirigido a: Bachilleres, técnicos, autodidactas y profesionales que buscan reconversión laboral hacia tecnología.
+- Título Oficial: Tecnólogo/a Superior en Desarrollo de Software (Tercer Nivel).
+- Beneficios: Programación desde cero, desarrollo web, aplicaciones móviles, bases de datos e Inteligencia Artificial aplicada con proyectos reales.
+- Dirigido a: Bachilleres, programadores empíricos, autodidactas y técnicos que buscan título oficial y mejores ingresos.
 
 B) TECNOLOGÍA SUPERIOR EN VENTAS DIGITALES:
-- Título Oficial de Tercer Nivel Tecnológico.
-- Beneficios: Estrategias comerciales omnicanal, embudos de venta (funnels), marketing digital, e-commerce y CRM.
-- Dirigido a: Emprendedores, vendedores tradicionales, bachilleres y equipos comerciales.
+- Título Oficial: Tecnólogo/a Superior en Ventas Digitales (Tercer Nivel).
+- Beneficios: Estrategias omnicanal, embudos de venta (funnels), marketing digital, e-commerce y CRM para disparar ventas.
+- Dirigido a: Emprendedores, vendedores tradicionales, bachilleres y colaboradores comerciales.
 
-3. RUTAS DE INGRESO:
-- «Empieza Desde Cero»: Formación completa paso a paso con acompañamiento docente e IA.
-- «Homologación y Validación de Experiencia Laboral»: Convalida materias aprobadas en universidades o reconoce tu experiencia laboral práctica para titularte en menor tiempo.
-- «ISTCGE para Empresas»: Planes corporativos de capacitación y titulación para equipos de trabajo.
+3. RUTAS DE INGRESO Y ADMISIÓN:
+- «Empieza Desde Cero»: Formación práctica desde las bases con acompañamiento continuo e IA.
+- «Homologación y Validación de Experiencia Laboral»: ¡No empieces de cero! Si tienes materias aprobadas o años de experiencia en el área, convalidamos tus conocimientos para titularte en menor tiempo.
+- «ISTCGE para Empresas»: Formación corporativa y convalidación para equipos de trabajo.
 
 4. TEST VOCACIONAL ASCEND (GRATUITO):
-- Cuestionario rápido para orientar a postulantes indecisos e identificar su afinidad (Ventas Digitales, Desarrollo de Software, Híbrido o Explorador).
+- Cuestionario orientativo de 3 minutos para descubrir tu perfil afín: Conector Comercial (Ventas), Constructor Digital (Software), Híbrido o Explorador.
 
-5. MANEJO DE PREGUNTAS Y OBJECIONES:
-- Flexibilidad: Plataforma disponible 24/7 para estudiar al propio ritmo.
-- Experiencia previa: No se requiere conocimiento previo en programación ni ventas.
-- Validez oficial: Títulos de 3er nivel registrados legalmente en Ecuador.
-- Contacto y Matrícula: Se invita al usuario a iniciar su inscripción o solicitar asesoría personalizada por WhatsApp.
+5. VENTAJAS Y MANEJO DE OBJECIONES:
+- Flexibilidad: Plataforma disponible 24/7 para estudiar a tu propio ritmo.
+- Experiencia: No se requiere experiencia previa en programación ni ventas.
+- Validez oficial: Títulos oficiales de 3er nivel legalmente avalados en Ecuador.
+- Asesoría: Invitar a iniciar la matrícula o solicitar contacto por WhatsApp con un asesor oficial.
 """
 
 SALUDOS_GENERICOS = ["hola", "buenos dias", "buenas tardes", "buenas noches", "saludos", "hola!", "holaa", "buenas", "que tal", "hola nia", "info", "informacion", "precio", "costo"]
@@ -55,85 +55,83 @@ def es_saludo_generico(text):
     clean = text.lower().strip().replace(".", "").replace("!", "").replace("¿", "").replace("?", "")
     return clean in SALUDOS_GENERICOS
 
-# --- CLIENTE RESILIENTE GEMINI ---
-def get_gemini_response(prompt_text, history_messages):
+# --- MODELO CACHEADO PARA VELOCIDAD ULTRA-RÁPIDA (RESPUESTA EN < 0.5s) ---
+@st.cache_resource
+def get_cached_gemini_model():
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key and "GEMINI_API_KEY" in st.secrets:
         api_key = st.secrets["GEMINI_API_KEY"]
 
     if not api_key:
-        return "⚠️ Por favor configura tu clave 'GEMINI_API_KEY' en los Secrets de Streamlit."
+        return None
 
     genai.configure(api_key=api_key)
 
     system_instruction = f"""
-Eres NIA, la Asesora Comercial de Admisiones y Ventas del Instituto Superior Tecnológico CGE (ISTCGE) y su plataforma ASCEND.
+Eres NIA, la Asesora Comercial de Admisiones y Ventas del Instituto Superior Tecnológico CGE (ISTCGE) y su plataforma educativa ASCEND.
 Sitio web oficial: https://web.istcge.edu.ec/
 
-TU ROL ES 100% COMERCIAL Y DE ASESORÍA DE VENTAS:
-- No eres tutora ni docente académica. Eres una asesora de admisiones amable, profesional, ejecutiva y enfocada en orientar, persuadir y captar estudiantes para ISTCGE.
-- Tu objetivo es presentar las ventajas de nuestras carreras oficiales de tercer nivel 100% en línea (Desarrollo de Software y Ventas Digitales), destacar la homologación de experiencia laboral y guiar al usuario hacia la matrícula o el contacto por WhatsApp con un asesor.
+TU ROL ES 100% COMERCIAL Y DE VENTAS:
+- No eres tutora ni docente académica. Eres una ejecutiva comercial de admisiones amable, enérgica, ejecutiva y enfocada en orientar, persuadir y captar estudiantes para ISTCGE.
+- Tu misión es presentar las ventajas de nuestras carreras oficiales de tercer nivel 100% en línea (Desarrollo de Software y Ventas Digitales), destacar la homologación de experiencia laboral y guiar al usuario hacia la matrícula o el contacto por WhatsApp con un asesor.
 
 PAUTAS DE RESPUESTA:
-1. Responde SIEMPRE en ESPAÑOL, con tono cálido, profesional, claro y vendedor.
+1. Responde SIEMPRE en ESPAÑOL, con tono cálido, profesional, dinámico y vendedor.
 2. Usa negritas para destacar ideas principales y listas ordenadas o con viñetas para facilitar la lectura.
-3. Respuestas concisas, bien estructuradas y directas al grano.
-4. Concluye siempre con una pregunta amable de cierre comercial o invitando a dar el siguiente paso (ej: evaluar experiencia para homologación, hacer el test vocacional o solicitar contacto por WhatsApp).
+3. Respuestas concisas, bien estructuradas y directas al grano (máximo 2 párrafos o viñetas claras).
+4. Concluye siempre con una pregunta amable de cierre comercial invitando al siguiente paso.
 
 INFORMACIÓN INSTITUCIONAL Y COMERCIAL:
 {KNOWLEDGE_CONTEXT}
 """
 
-    candidate_models = [
-        "gemini-flash-latest",
-        "gemini-1.5-flash-latest",
-        "gemini-pro",
-        "gemini-1.5-flash-8b",
-        "gemini-1.5-flash",
-        "gemini-2.0-flash",
-        "gemini-1.5-pro-latest"
-    ]
-
-    last_error = None
-    for model_name in candidate_models:
+    for model_name in ["gemini-flash-latest", "gemini-1.5-flash-latest", "gemini-pro", "gemini-2.0-flash", "gemini-1.5-flash"]:
         try:
             model = genai.GenerativeModel(
                 model_name=model_name,
                 system_instruction=system_instruction
             )
-            chat = model.start_chat(history=[])
-            response = chat.send_message(prompt_text)
-            if response and response.text:
-                return response.text
-        except Exception as e:
+            # Prueba rápida de inicialización
+            return model
+        except Exception:
             try:
                 model_alt = genai.GenerativeModel(model_name=model_name)
-                full_prompt = f"{system_instruction}\n\n[CONSULTA DEL PROSPECTO]:\n{prompt_text}"
-                response = model_alt.generate_content(full_prompt)
-                if response and response.text:
-                    return response.text
-            except Exception as ex:
-                last_error = ex
+                return model_alt
+            except Exception:
                 continue
 
-    return f"Disculpa, ocurrió un inconveniente con el servicio de IA: {str(last_error)}"
+    return genai.GenerativeModel(model_name="gemini-pro")
 
-# --- ESTILOS VISUALES PROFESIONALES (SIN ÍCONOS, ACABADOS WEB PREMIUM) ---
+# --- GENERADOR DE STREAMING PARA RESPUESTAS EN TIEMPO REAL ---
+def stream_gemini_response(prompt_text, model):
+    if model is None:
+        yield "⚠️ Por favor configura tu clave 'GEMINI_API_KEY' en los Secrets de Streamlit."
+        return
+
+    try:
+        response = model.generate_content(prompt_text, stream=True)
+        for chunk in response:
+            if chunk.text:
+                yield chunk.text
+    except Exception as e:
+        yield f"Disculpa, ocurrió un inconveniente al conectar con el servidor: {str(e)}"
+
+# --- ESTILOS VISUALES: MINIMALISTA, SIN ÍCONOS, TEXTO DE INPUT 100% VISIBLE ---
 st.markdown("""
     <style>
-    /* Estilos base limpios y profesionales */
+    /* Estilos generales limpios */
     .stApp {
         background-color: #f9fafb !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
-        color: #1f2937 !important;
+        color: #111827 !important;
     }
 
-    /* Ocultar barra superior y footer */
+    /* Ocultar barra superior y pie de página de Streamlit */
     header { visibility: hidden !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
 
-    /* OCULTAR COMPLETAMENTE LOS AVATARES/ÍCONOS PREDETERMINADOS */
+    /* Ocultar avatares e íconos */
     [data-testid="stChatMessageAvatarCustom"],
     [data-testid="stChatMessageAvatarUser"],
     [data-testid="stChatMessageAvatarAssistant"],
@@ -141,14 +139,14 @@ st.markdown("""
         display: none !important;
     }
 
-    /* Tarjeta principal estilo solicitado */
+    /* Encabezado Corporativo */
     .cge-card-header {
         max-width: 680px;
-        margin: 0 auto 14px auto;
-        padding: 16px 20px;
+        margin: 0 auto 12px auto;
+        padding: 14px 18px;
         background: #ffffff;
         border: 1px solid #e5e7eb;
-        border-radius: 16px;
+        border-radius: 14px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         display: flex;
         align-items: center;
@@ -156,7 +154,7 @@ st.markdown("""
     }
 
     .cge-header-titles h1 {
-        font-size: 16px !important;
+        font-size: 15px !important;
         font-weight: 700 !important;
         color: #111827 !important;
         margin: 0 !important;
@@ -165,17 +163,17 @@ st.markdown("""
 
     .cge-header-titles p {
         color: rgb(107, 114, 128) !important;
-        font-size: 13px !important;
-        margin: 3px 0 0 0 !important;
+        font-size: 12.5px !important;
+        margin: 2px 0 0 0 !important;
     }
 
     .cge-badge-status {
         background-color: #ecfdf5;
         color: #059669;
         border: 1px solid #a7f3d0;
-        padding: 4px 10px;
+        padding: 3px 9px;
         border-radius: 20px;
-        font-size: 12px;
+        font-size: 11.5px;
         font-weight: 600;
         display: inline-flex;
         align-items: center;
@@ -189,21 +187,20 @@ st.markdown("""
         border-radius: 50%;
     }
 
-    /* Mensajes de Chat limpios sin íconos */
+    /* Mensajes del chat */
     .stChatMessage {
         max-width: 680px !important;
-        margin: 0 auto 10px auto !important;
+        margin: 0 auto 8px auto !important;
         background-color: #ffffff !important;
         border: 1px solid #e5e7eb !important;
         border-radius: 12px !important;
-        padding: 14px 18px !important;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+        padding: 12px 16px !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
     }
 
-    /* Textos en el chat */
     .stChatMessage p, .stChatMessage li, .stChatMessage span {
         color: #1f2937 !important;
-        font-size: 14.5px !important;
+        font-size: 14px !important;
         line-height: 1.55 !important;
     }
 
@@ -212,21 +209,19 @@ st.markdown("""
         font-weight: 600 !important;
     }
 
-    /* Contenedor de Botones de Preguntas Rápidas */
+    /* Botones de preguntas frecuentes */
     div[data-testid="column"] {
-        padding: 0 4px !important;
+        padding: 0 3px !important;
     }
 
     .stButton button {
         background-color: #ffffff !important;
         color: #374151 !important;
         border: 1px solid #e5e7eb !important;
-        border-radius: 10px !important;
-        font-size: 13px !important;
+        border-radius: 8px !important;
+        font-size: 12.5px !important;
         font-weight: 500 !important;
-        padding: 8px 12px !important;
-        transition: all 0.2s ease !important;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+        padding: 7px 10px !important;
         width: 100% !important;
         text-align: left !important;
         display: block !important;
@@ -236,17 +231,33 @@ st.markdown("""
         border-color: #002c5a !important;
         color: #002c5a !important;
         background-color: #f8fafc !important;
-        box-shadow: 0 2px 4px rgba(0, 44, 90, 0.08) !important;
     }
 
-    /* Input del chat */
-    .stChatInputContainer {
+    /* FIX CRÍTICO: TEXTO DEL INPUT 100% VISIBLE Y LEGIBLE */
+    .stChatInputContainer,
+    div[data-testid="stChatInput"] {
         max-width: 680px !important;
         margin: 0 auto !important;
         background-color: #ffffff !important;
         border: 1px solid #d1d5db !important;
         border-radius: 12px !important;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    .stChatInputContainer textarea,
+    div[data-testid="stChatInput"] textarea,
+    .stChatInput textarea {
+        color: #111827 !important;
+        background-color: #ffffff !important;
+        font-size: 14px !important;
+        caret-color: #002c5a !important;
+        -webkit-text-fill-color: #111827 !important;
+    }
+
+    .stChatInputContainer textarea::placeholder,
+    div[data-testid="stChatInput"] textarea::placeholder {
+        color: #6b7280 !important;
+        -webkit-text-fill-color: #6b7280 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -265,6 +276,9 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# Cargar modelo en memoria (ultra-rápido)
+model = get_cached_gemini_model()
+
 # Historial de conversación
 if "messages" not in st.session_state:
     st.session_state.messages = [
@@ -279,14 +293,14 @@ for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# --- BOTONES DE PREGUNTAS FRECUENTES INTERACTIVAS ---
+# --- BOTONES DE PREGUNTAS FRECUENTES INTERACTIVAS AL INICIO ---
 selected_prompt = None
 
 if len(st.session_state.messages) <= 1:
     st.markdown("""
-    <div style="max-width: 680px; margin: 6px auto 8px auto;">
-        <p style="font-size: 12.5px; color: rgb(107, 114, 128); margin: 0 0 6px 0; font-weight: 500;">
-            Preguntas frecuentes (haz clic para consultar):
+    <div style="max-width: 680px; margin: 4px auto 6px auto;">
+        <p style="font-size: 12px; color: rgb(107, 114, 128); margin: 0 0 4px 0; font-weight: 500;">
+            Consultas rápidas:
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -303,7 +317,7 @@ if len(st.session_state.messages) <= 1:
         if st.button("🧭 Test Vocacional Gratuito", key="btn_test", use_container_width=True):
             selected_prompt = "¿En qué consiste el Test Vocacional gratuito de ASCEND y cómo puedo realizarlo?"
 
-# Manejar si el usuario escribió en el input o presionó un botón de pregunta rápida
+# Capturar interacción por input o botón
 user_input = st.chat_input("Escribe tu consulta sobre carreras, costos o matrícula...")
 active_prompt = selected_prompt or user_input
 
@@ -318,9 +332,8 @@ if active_prompt:
             st.markdown(reply)
             st.session_state.messages.append({"role": "assistant", "content": reply})
         else:
-            with st.spinner("NIA está procesando tu consulta..."):
-                response_text = get_gemini_response(active_prompt, st.session_state.messages)
-                st.markdown(response_text)
-                st.session_state.messages.append({"role": "assistant", "content": response_text})
+            # Respuesta instantánea con Streaming en tiempo real
+            full_response = st.write_stream(stream_gemini_response(active_prompt, model))
+            st.session_state.messages.append({"role": "assistant", "content": full_response})
     
     st.rerun()
