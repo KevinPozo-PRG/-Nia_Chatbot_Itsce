@@ -118,7 +118,7 @@ INFORMACIÓN INSTITUCIONAL Y COMERCIAL:
 
     return f"Disculpa, ocurrió un inconveniente con el servicio de IA: {str(last_error)}"
 
-# --- ESTILOS VISUALES LIMPIOS, MINIMALISTAS Y ELEGANTES (ESTILO SOLICITADO) ---
+# --- ESTILOS VISUALES PROFESIONALES (SIN ÍCONOS, ACABADOS WEB PREMIUM) ---
 st.markdown("""
     <style>
     /* Estilos base limpios y profesionales */
@@ -133,10 +133,18 @@ st.markdown("""
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
 
+    /* OCULTAR COMPLETAMENTE LOS AVATARES/ÍCONOS PREDETERMINADOS */
+    [data-testid="stChatMessageAvatarCustom"],
+    [data-testid="stChatMessageAvatarUser"],
+    [data-testid="stChatMessageAvatarAssistant"],
+    div[data-testid="stChatMessage"] > div:first-child:not([data-testid="stChatMessageContent"]) {
+        display: none !important;
+    }
+
     /* Tarjeta principal estilo solicitado */
     .cge-card-header {
         max-width: 680px;
-        margin: 0 auto 16px auto;
+        margin: 0 auto 14px auto;
         padding: 16px 20px;
         background: #ffffff;
         border: 1px solid #e5e7eb;
@@ -145,26 +153,6 @@ st.markdown("""
         display: flex;
         align-items: center;
         justify-content: space-between;
-    }
-
-    .cge-header-left {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .cge-avatar {
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        background-color: #002c5a;
-        color: #ffffff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 14px;
-        letter-spacing: 0.5px;
     }
 
     .cge-header-titles h1 {
@@ -178,7 +166,7 @@ st.markdown("""
     .cge-header-titles p {
         color: rgb(107, 114, 128) !important;
         font-size: 13px !important;
-        margin: 2px 0 0 0 !important;
+        margin: 3px 0 0 0 !important;
     }
 
     .cge-badge-status {
@@ -201,33 +189,14 @@ st.markdown("""
         border-radius: 50%;
     }
 
-    /* Píldoras de Carreras */
-    .cge-tags-container {
-        max-width: 680px;
-        margin: 0 auto 16px auto;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .cge-tag {
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        color: #374151 !important;
-        font-size: 12.5px;
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-weight: 500;
-    }
-
-    /* Mensajes de Chat limpios */
+    /* Mensajes de Chat limpios sin íconos */
     .stChatMessage {
         max-width: 680px !important;
         margin: 0 auto 10px auto !important;
         background-color: #ffffff !important;
         border: 1px solid #e5e7eb !important;
-        border-radius: 14px !important;
-        padding: 12px 16px !important;
+        border-radius: 12px !important;
+        padding: 14px 18px !important;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
     }
 
@@ -243,6 +212,33 @@ st.markdown("""
         font-weight: 600 !important;
     }
 
+    /* Contenedor de Botones de Preguntas Rápidas */
+    div[data-testid="column"] {
+        padding: 0 4px !important;
+    }
+
+    .stButton button {
+        background-color: #ffffff !important;
+        color: #374151 !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 10px !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        padding: 8px 12px !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+        width: 100% !important;
+        text-align: left !important;
+        display: block !important;
+    }
+
+    .stButton button:hover {
+        border-color: #002c5a !important;
+        color: #002c5a !important;
+        background-color: #f8fafc !important;
+        box-shadow: 0 2px 4px rgba(0, 44, 90, 0.08) !important;
+    }
+
     /* Input del chat */
     .stChatInputContainer {
         max-width: 680px !important;
@@ -255,15 +251,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- ENCABEZADO MINIMALISTA ESTILO SOLICITADO ---
+# --- ENCABEZADO MINIMALISTA PROFESIONAL ---
 st.markdown("""
 <div class="cge-card-header">
-    <div class="cge-header-left">
-        <div class="cge-avatar">CGE</div>
-        <div class="cge-header-titles">
-            <h1>NIA • Asesora Comercial ISTCGE</h1>
-            <p>Instituto Superior Tecnológico CGE • Admisiones 100% Online</p>
-        </div>
+    <div class="cge-header-titles">
+        <h1>NIA • Asesora Comercial ISTCGE</h1>
+        <p>Instituto Superior Tecnológico CGE • Admisiones 100% Online</p>
     </div>
     <span class="cge-badge-status">
         <span class="status-dot"></span>
@@ -272,23 +265,12 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- PÍLDORAS INFORMATIVAS ---
-st.markdown("""
-<div class="cge-tags-container">
-    <div class="cge-tag">💻 Tec. en Desarrollo de Software</div>
-    <div class="cge-tag">📈 Tec. en Ventas Digitales</div>
-    <div class="cge-tag">⚡ Homologación de Experiencia</div>
-    <div class="cge-tag">🧭 Test Vocacional Gratuito</div>
-    <div class="cge-tag">🎓 Títulos Oficiales CES</div>
-</div>
-""", unsafe_allow_html=True)
-
 # Historial de conversación
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {
             "role": "assistant",
-            "content": "¡Hola! Te saluda **NIA**, asesora comercial de admisiones del **Instituto Superior Tecnológico CGE (ISTCGE)**.\n\nTe ayudo a elegir tu carrera de tercer nivel tecnológico 100% en línea:\n\n* 💻 **Tecnología Superior en Desarrollo de Software**\n* 📈 **Tecnología Superior en Ventas Digitales**\n* ⚡ **Homologación de Experiencia Laboral** *(titulación acelerada)*\n* 🧭 **Test Vocacional Gratuito**\n\n¿En cuál de nuestras opciones te gustaría recibir información sobre requisitos, plan de estudios o facilidades de pago?"
+            "content": "¡Hola! Te saluda **NIA**, asesora comercial de admisiones del **Instituto Superior Tecnológico CGE (ISTCGE)**.\n\nTe ayudo a elegir tu carrera de tercer nivel tecnológico 100% en línea:\n\n* **Tecnología Superior en Desarrollo de Software**\n* **Tecnología Superior en Ventas Digitales**\n* **Homologación y Validación de Experiencia Laboral** *(titulación acelerada)*\n* **Test Vocacional Gratuito**\n\n¿En cuál de nuestras opciones te gustaría recibir información sobre requisitos, plan de estudios o facilidades de pago?"
         }
     ]
 
@@ -297,19 +279,48 @@ for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# Capturar interacción del usuario
-if prompt := st.chat_input("Escribe tu consulta sobre carreras, costos o matrícula..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
+# --- BOTONES DE PREGUNTAS FRECUENTES INTERACTIVAS ---
+selected_prompt = None
+
+if len(st.session_state.messages) <= 1:
+    st.markdown("""
+    <div style="max-width: 680px; margin: 6px auto 8px auto;">
+        <p style="font-size: 12.5px; color: rgb(107, 114, 128); margin: 0 0 6px 0; font-weight: 500;">
+            Preguntas frecuentes (haz clic para consultar):
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🎓 ¿Qué carreras ofrecen?", key="btn_carreras", use_container_width=True):
+            selected_prompt = "¿Qué carreras oficiales de tercer nivel ofrecen en ISTCGE y cuáles son sus ventajas?"
+        if st.button("⚡ ¿Cómo funciona la homologación?", key="btn_homologacion", use_container_width=True):
+            selected_prompt = "¿Cómo funciona la validación de experiencia laboral y la homologación de materias para titularme más rápido?"
+    with col2:
+        if st.button("💻 Carrera de Desarrollo de Software", key="btn_software", use_container_width=True):
+            selected_prompt = "Quiero información completa sobre la carrera de Tecnología Superior en Desarrollo de Software"
+        if st.button("🧭 Test Vocacional Gratuito", key="btn_test", use_container_width=True):
+            selected_prompt = "¿En qué consiste el Test Vocacional gratuito de ASCEND y cómo puedo realizarlo?"
+
+# Manejar si el usuario escribió en el input o presionó un botón de pregunta rápida
+user_input = st.chat_input("Escribe tu consulta sobre carreras, costos o matrícula...")
+active_prompt = selected_prompt or user_input
+
+if active_prompt:
+    st.session_state.messages.append({"role": "user", "content": active_prompt})
     with st.chat_message("user"):
-        st.markdown(prompt)
+        st.markdown(active_prompt)
 
     with st.chat_message("assistant"):
-        if es_saludo_generico(prompt):
-            reply = "¡Hola! Qué gusto saludarte. En **ISTCGE** contamos con convocatorias abiertas para nuestras carreras oficiales de tercer nivel 100% en línea:\n\n1. 💻 **Tecnología Superior en Desarrollo de Software**\n2. 📈 **Tecnología Superior en Ventas Digitales**\n3. ⚡ **Homologación y Validación de Experiencia Laboral**\n\n¿De cuál de ellas deseas conocer los detalles o beneficios de matrícula?"
+        if es_saludo_generico(active_prompt):
+            reply = "¡Hola! Qué gusto saludarte. En **ISTCGE** contamos con convocatorias abiertas para nuestras carreras oficiales de tercer nivel 100% en línea:\n\n1. **Tecnología Superior en Desarrollo de Software**\n2. **Tecnología Superior en Ventas Digitales**\n3. **Homologación y Validación de Experiencia Laboral**\n\n¿De cuál de ellas deseas conocer los detalles o facilidades de pago?"
             st.markdown(reply)
             st.session_state.messages.append({"role": "assistant", "content": reply})
         else:
             with st.spinner("NIA está procesando tu consulta..."):
-                response_text = get_gemini_response(prompt, st.session_state.messages)
+                response_text = get_gemini_response(active_prompt, st.session_state.messages)
                 st.markdown(response_text)
                 st.session_state.messages.append({"role": "assistant", "content": response_text})
+    
+    st.rerun()
