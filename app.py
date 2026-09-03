@@ -2,7 +2,6 @@ import streamlit as st
 import os
 from dotenv import load_dotenv
 from google import genai
-from google.genai import types
 
 # Carga de variables de entorno
 load_dotenv()
@@ -77,7 +76,7 @@ def es_saludo_generico(text):
     clean = text.lower().strip().replace(".", "").replace("!", "").replace("¿", "").replace("?", "")
     return clean in SALUDOS_GENERICOS
 
-# --- CLIENTE GENAI OFICIAL V2+ CON CLIENT CACHING ---
+# --- OBTENCIÓN ROBUSTA DEL CLIENTE GOOGLE GENAI ---
 @st.cache_resource
 def get_genai_client():
     api_key = os.getenv("GEMINI_API_KEY")
@@ -87,34 +86,35 @@ def get_genai_client():
     if not api_key:
         return None
 
-    return genai.Client(api_key=api_key)
+    try:
+        return genai.Client(api_key=api_key)
+    except Exception:
+        return None
 
-# --- GENERADOR DE STREAMING CON ROTACIÓN AUTOMÁTICA DE MODELOS (EVITA RATE LIMITS 429) ---
+# --- GENERADOR DE STREAMING DE ALTA DISPONIBILIDAD ---
 def stream_gemini_response(prompt_text, client):
     if not client:
         yield "⚠️ Por favor configura tu clave 'GEMINI_API_KEY' en los Secrets de Streamlit."
         return
 
-    config = types.GenerateContentConfig(
-        system_instruction=SYSTEM_INSTRUCTION,
-        temperature=0.7,
-    )
+    full_prompt = f"{SYSTEM_INSTRUCTION}\n\n[CONSULTA DEL PROSPECTO]:\n{prompt_text}"
 
-    # Modelos con alta cuota gratuita (1,500 solicitudes/día y 15 RPM)
+    # Lista de modelos con compatibilidad garantizada
     models_to_try = [
         "gemini-2.0-flash",
         "gemini-1.5-flash",
         "gemini-2.0-flash-lite",
         "gemini-1.5-flash-8b",
-        "gemini-1.5-pro"
+        "gemini-1.5-pro",
+        "gemini-pro"
     ]
 
+    last_error_msg = ""
     for model_name in models_to_try:
         try:
             response = client.models.generate_content_stream(
                 model=model_name,
-                contents=prompt_text,
-                config=config
+                contents=full_prompt
             )
             has_emitted = False
             for chunk in response:
@@ -123,13 +123,13 @@ def stream_gemini_response(prompt_text, client):
                     yield chunk.text
             if has_emitted:
                 return
-        except Exception:
-            # Si un modelo alcanza límite 429 o error, pasa de inmediato al siguiente modelo en milisegundos
+        except Exception as e:
+            last_error_msg = str(e)
             continue
 
-    yield "Disculpa, nuestros servidores de asesoría están procesando un alto volumen de consultas. Por favor repite tu mensaje en un instante o déjanos contactarte por WhatsApp."
+    yield f"Disculpa, ocurrió un inconveniente con el servicio: {last_error_msg}"
 
-# --- PALETA Y ESTILOS OFICIALES DEL SITIO ISTCGE ASCEND ---
+# --- ESTILOS VISUALES: GAMA OFICIAL SITIO ISTCGE ASCEND + SPINNER CYAN ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -275,6 +275,16 @@ st.markdown("""
     .stChatMessage strong {
         color: var(--cge-cyan) !important;
         font-weight: 700 !important;
+    }
+
+    /* Estilo del Spinner de Carga */
+    .stSpinner > div {
+        border-top-color: #00D2FF !important;
+    }
+    div[data-testid="stSpinner"] {
+        color: #94A3B8 !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
     }
 
     /* Botones de Preguntas Frecuentes estilo ASCEND */
@@ -443,8 +453,9 @@ if active_prompt:
             st.markdown(reply)
             st.session_state.messages.append({"role": "assistant", "content": reply})
         else:
-            # Respuesta instantánea con Streaming en tiempo real vía google.genai con rotación multi-modelo
-            full_response = st.write_stream(stream_gemini_response(active_prompt, client))
+            # Mensaje de estado ("NIA está consultando la información oficial...") antes de emitir respuesta
+            with st.spinner("NIA está consultando la información oficial de ISTCGE..."):
+                full_response = st.write_stream(stream_gemini_response(active_prompt, client))
             st.session_state.messages.append({"role": "assistant", "content": full_response})
     
     st.rerun()
