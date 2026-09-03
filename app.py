@@ -77,49 +77,100 @@ def es_saludo_generico(text):
     clean = text.lower().strip().replace(".", "").replace("!", "").replace("¿", "").replace("?", "")
     return clean in SALUDOS_GENERICOS
 
-# --- OBTENCIÓN DE CLAVE API ---
-def get_gemini_api_key():
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key and "GEMINI_API_KEY" in st.secrets:
-        api_key = st.secrets["GEMINI_API_KEY"]
-    return api_key
+# --- OBTENCIÓN DE CLAVES API (OPENROUTER O GEMINI) ---
+def get_api_credentials():
+    # Prioridad 1: OpenRouter
+    openrouter_key = os.getenv("OPENROUTER_API_KEY")
+    if not openrouter_key and "OPENROUTER_API_KEY" in st.secrets:
+        openrouter_key = st.secrets["OPENROUTER_API_KEY"]
 
-# --- GENERADOR HTTP STREAMING SSE (TIEMPO REAL < 300MS SIN TIMEOUTS) ---
-def stream_gemini_response(prompt_text):
-    api_key = get_gemini_api_key()
-    if not api_key:
-        yield "⚠️ Por favor configura tu clave 'GEMINI_API_KEY' en los Secrets de Streamlit."
-        return
+    if openrouter_key:
+        return "openrouter", openrouter_key
 
-    full_prompt = f"{SYSTEM_INSTRUCTION}\n\n[CONSULTA DEL PROSPECTO]:\n{prompt_text}"
+    # Prioridad 2: Gemini Direct API Key
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_key and "GEMINI_API_KEY" in st.secrets:
+        gemini_key = st.secrets["GEMINI_API_KEY"]
 
-    # Modelos rápidos con alta disponibilidad
-    candidate_models = [
-        "gemini-2.0-flash",
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-latest",
-        "gemini-2.5-flash"
-    ]
+    if gemini_key:
+        return "gemini", gemini_key
 
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": full_prompt}
-                ]
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0.7,
-            "maxOutputTokens": 800
-        }
+    return None, None
+
+# --- GENERADOR OPENROUTER SSE EN TIEMPO REAL (ULTRA-ESTABLE Y GRATUITO) ---
+def stream_openrouter_response(prompt_text, api_key):
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://web.istcge.edu.ec",
+        "X-Title": "NIA ISTCGE Chatbot"
     }
 
+    # Modelos Gratuitos de Alto Rendimiento en OpenRouter
+    candidate_models = [
+        "google/gemma-4-31b-it:free",
+        "google/gemma-4-26b-a4b-it:free",
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "deepseek/deepseek-chat:free",
+        "qwen/qwen-2.5-72b-instruct:free",
+        "google/gemini-2.0-flash-exp:free"
+    ]
+
+    last_error = ""
+    for model_name in candidate_models:
+        payload = {
+            "model": model_name,
+            "messages": [
+                {"role": "system", "content": SYSTEM_INSTRUCTION},
+                {"role": "user", "content": prompt_text}
+            ],
+            "temperature": 0.7,
+            "stream": True
+        }
+
+        try:
+            r = requests.post(url, headers=headers, json=payload, stream=True, timeout=(5, 30))
+            if r.status_code == 200:
+                has_yielded = False
+                for line in r.iter_lines():
+                    if line:
+                        decoded_line = line.decode("utf-8")
+                        if decoded_line.startswith("data: "):
+                            json_str = decoded_line[6:].strip()
+                            if json_str == "[DONE]":
+                                break
+                            try:
+                                data = json.loads(json_str)
+                                content = data["choices"][0]["delta"].get("content", "")
+                                if content:
+                                    has_yielded = True
+                                    yield content
+                            except (KeyError, IndexError, json.JSONDecodeError):
+                                continue
+                if has_yielded:
+                    return
+            else:
+                last_error = f"HTTP {r.status_code}: {r.text[:120]}"
+                continue
+        except Exception as e:
+            last_error = str(e)
+            continue
+
+    yield f"Disculpa, ocurrió un inconveniente con el servidor de OpenRouter: {last_error}"
+
+# --- GENERADOR FALLBACK DIRECTO DE GEMINI ---
+def stream_gemini_response(prompt_text, api_key):
+    full_prompt = f"{SYSTEM_INSTRUCTION}\n\n[CONSULTA DEL PROSPECTO]:\n{prompt_text}"
+    candidate_models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-latest"]
+    
+    payload = {
+        "contents": [{"parts": [{"text": full_prompt}]}],
+        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 800}
+    }
     headers = {"Content-Type": "application/json"}
-    last_error_details = ""
 
     for model_name in candidate_models:
-        # Endpoint de streaming SSE en vivo
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:streamGenerateContent?key={api_key}&alt=sse"
         try:
             r = requests.post(url, headers=headers, json=payload, stream=True, timeout=(5, 30))
@@ -140,14 +191,22 @@ def stream_gemini_response(prompt_text):
                                 continue
                 if has_yielded:
                     return
-            else:
-                last_error_details = f"HTTP {r.status_code}"
-                continue
-        except Exception as e:
-            last_error_details = str(e)
+        except Exception:
             continue
 
-    yield f"Disculpa, nuestros servidores de IA están con alta demanda en este momento. Por favor intenta nuevamente en unos segundos."
+    yield "Disculpa, nuestros servidores de IA están procesando una alta carga. Por favor reintenta en un instante."
+
+# --- FUNCIÓN UNIFICADA DE RESPUESTA ---
+def generate_ai_response(prompt_text):
+    provider, key = get_api_credentials()
+    if not provider:
+        yield "⚠️ Por favor configura tu clave 'OPENROUTER_API_KEY' o 'GEMINI_API_KEY' en los Secrets de Streamlit."
+        return
+
+    if provider == "openrouter":
+        yield from stream_openrouter_response(prompt_text, key)
+    else:
+        yield from stream_gemini_response(prompt_text, key)
 
 # --- ESTILOS VISUALES: GAMA OFICIAL SITIO ISTCGE ASCEND ---
 st.markdown("""
@@ -471,7 +530,7 @@ if active_prompt:
             st.session_state.messages.append({"role": "assistant", "content": reply})
         else:
             with st.spinner("NIA está consultando la información oficial de ISTCGE..."):
-                full_response = st.write_stream(stream_gemini_response(active_prompt))
+                full_response = st.write_stream(generate_ai_response(active_prompt))
             st.session_state.messages.append({"role": "assistant", "content": full_response})
     
     st.rerun()

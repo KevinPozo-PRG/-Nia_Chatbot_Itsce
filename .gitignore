@@ -1,10 +1,5 @@
-# Entorno y variables
 .env
-venv/
-env/
+.streamlit/secrets.toml
 __pycache__/
 *.pyc
-
-# IDEs
-.vscode/
-.idea/
+.DS_Store
