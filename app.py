@@ -55,7 +55,7 @@ def es_saludo_generico(text):
     clean = text.lower().strip().replace(".", "").replace("!", "").replace("¿", "").replace("?", "")
     return clean in SALUDOS_GENERICOS
 
-# --- MODELO CACHEADO PARA VELOCIDAD ULTRA-RÁPIDA (RESPUESTA EN < 0.5s) ---
+# --- SISTEMA DE AUTODESCUBRIMIENTO DE MODELOS DISPONIBLES (CERO ERRORES 404) ---
 @st.cache_resource
 def get_cached_gemini_model():
     api_key = os.getenv("GEMINI_API_KEY")
@@ -63,7 +63,7 @@ def get_cached_gemini_model():
         api_key = st.secrets["GEMINI_API_KEY"]
 
     if not api_key:
-        return None
+        return None, "Falta la clave GEMINI_API_KEY"
 
     genai.configure(api_key=api_key)
 
@@ -85,22 +85,52 @@ INFORMACIÓN INSTITUCIONAL Y COMERCIAL:
 {KNOWLEDGE_CONTEXT}
 """
 
-    for model_name in ["gemini-flash-latest", "gemini-1.5-flash-latest", "gemini-pro", "gemini-2.0-flash", "gemini-1.5-flash"]:
-        try:
-            model = genai.GenerativeModel(
-                model_name=model_name,
-                system_instruction=system_instruction
-            )
-            # Prueba rápida de inicialización
-            return model
-        except Exception:
-            try:
-                model_alt = genai.GenerativeModel(model_name=model_name)
-                return model_alt
-            except Exception:
-                continue
+    # 1. Consultar a Google la lista exacta de modelos activos para esta clave
+    supported_models = []
+    try:
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                supported_models.append(m.name)
+    except Exception as e:
+        supported_models = []
 
-    return genai.GenerativeModel(model_name="gemini-pro")
+    # 2. Prioridad de modelos más rápidos
+    priority_list = [
+        "models/gemini-1.5-flash",
+        "models/gemini-1.5-flash-latest",
+        "models/gemini-2.0-flash",
+        "models/gemini-2.5-flash",
+        "models/gemini-pro",
+        "models/gemini-1.0-pro"
+    ]
+
+    chosen_model_name = None
+    for candidate in priority_list:
+        if candidate in supported_models:
+            chosen_model_name = candidate
+            break
+
+    # Si no coincide con la lista preferida, tomar el primer modelo compatible listado por Google
+    if not chosen_model_name and supported_models:
+        chosen_model_name = supported_models[0]
+
+    # Fallback por defecto si no pudo listar
+    if not chosen_model_name:
+        chosen_model_name = "models/gemini-pro"
+
+    # 3. Instanciar el modelo de forma segura
+    try:
+        model = genai.GenerativeModel(
+            model_name=chosen_model_name,
+            system_instruction=system_instruction
+        )
+        return model, chosen_model_name
+    except Exception:
+        try:
+            model = genai.GenerativeModel(model_name=chosen_model_name)
+            return model, chosen_model_name
+        except Exception as ex:
+            return None, str(ex)
 
 # --- GENERADOR DE STREAMING PARA RESPUESTAS EN TIEMPO REAL ---
 def stream_gemini_response(prompt_text, model):
@@ -109,7 +139,12 @@ def stream_gemini_response(prompt_text, model):
         return
 
     try:
-        response = model.generate_content(prompt_text, stream=True)
+        full_prompt = f"""
+Consulta del usuario: {prompt_text}
+
+Recuerda responder como NIA, asesora comercial de ISTCGE, usando la información institucional oficial y orientando al prospecto hacia la inscripción o contacto.
+"""
+        response = model.generate_content(full_prompt, stream=True)
         for chunk in response:
             if chunk.text:
                 yield chunk.text
@@ -233,31 +268,43 @@ st.markdown("""
         background-color: #f8fafc !important;
     }
 
-    /* FIX CRÍTICO: TEXTO DEL INPUT 100% VISIBLE Y LEGIBLE */
+    /* --- FIX TOTAL PARA VISIBILIDAD DE TEXTO EN EL INPUT --- */
     .stChatInputContainer,
-    div[data-testid="stChatInput"] {
+    div[data-testid="stChatInput"],
+    .stChatInput,
+    [data-testid="stBottomBlockContainer"] {
         max-width: 680px !important;
         margin: 0 auto !important;
         background-color: #ffffff !important;
-        border: 1px solid #d1d5db !important;
+    }
+
+    div[data-testid="stChatInput"] {
+        border: 1px solid #94a3b8 !important;
         border-radius: 12px !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+        overflow: hidden !important;
     }
 
     .stChatInputContainer textarea,
     div[data-testid="stChatInput"] textarea,
-    .stChatInput textarea {
-        color: #111827 !important;
+    .stChatInput textarea,
+    textarea[data-testid="stChatInputTextArea"],
+    textarea.st-bk {
         background-color: #ffffff !important;
-        font-size: 14px !important;
+        color: #0f172a !important;
+        font-size: 14.5px !important;
+        font-weight: 500 !important;
         caret-color: #002c5a !important;
-        -webkit-text-fill-color: #111827 !important;
+        -webkit-text-fill-color: #0f172a !important;
+        opacity: 1 !important;
     }
 
     .stChatInputContainer textarea::placeholder,
-    div[data-testid="stChatInput"] textarea::placeholder {
-        color: #6b7280 !important;
-        -webkit-text-fill-color: #6b7280 !important;
+    div[data-testid="stChatInput"] textarea::placeholder,
+    textarea[data-testid="stChatInputTextArea"]::placeholder {
+        color: #64748b !important;
+        -webkit-text-fill-color: #64748b !important;
+        opacity: 1 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -276,8 +323,8 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Cargar modelo en memoria (ultra-rápido)
-model = get_cached_gemini_model()
+# Cargar modelo con autodescubrimiento activo
+model, model_status = get_cached_gemini_model()
 
 # Historial de conversación
 if "messages" not in st.session_state:
