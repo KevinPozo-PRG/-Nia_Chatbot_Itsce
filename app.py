@@ -5,16 +5,10 @@ from dotenv import load_dotenv
 # Carga de variables de entorno (.env o Secrets de Streamlit Cloud)
 load_dotenv()
 
-from langchain_community.vectorstores import FAISS
-from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_google_genai import ChatGoogleGenerativeAI
 
-DB_FAISS_PATH = "vectorstore/db_faiss"
-
-# --- BASE DE CONOCIMIENTO EMBEBIDA (RESPALDO COMPLETO DE ISTCGE) ---
+# --- BASE DE CONOCIMIENTO EMBEBIDA (INFORMACIÓN OFICIAL ISTCGE / ASCEND) ---
 KNOWLEDGE_CONTEXT = """
 1. IDENTIDAD INSTITUCIONAL Y DATOS GENERALES:
 - Nombre oficial: Instituto Superior Tecnológico CGE (ISTCGE).
@@ -44,18 +38,18 @@ Los 6 Pilares de ASCEND:
 
 3. PROGRAMAS ACADÉMICOS (CARRERAS DISPONIBLES):
 A) TECNOLOGÍA SUPERIOR EN VENTAS DIGITALES:
-- Título: Tecnólogo/a Superior en Ventas Digitales (Tercer Nivel).
+- Título Oficial: Tecnólogo/a Superior en Ventas Digitales (Tercer Nivel Tecnológico).
 - Modalidad: 100% en línea.
 - Propósito: «Convierte ideas, productos y oportunidades en resultados».
 - Competencias: Estrategias comerciales omnicanal, embudos de ventas (funnels), marketing digital, e-commerce y CRM.
 - Dirigido a: Emprendedores, vendedores tradicionales, bachilleres y equipos comerciales.
 
 B) TECNOLOGÍA SUPERIOR EN DESARROLLO DE SOFTWARE:
-- Título: Tecnólogo/a Superior en Desarrollo de Software (Tercer Nivel).
+- Título Oficial: Tecnólogo/a Superior en Desarrollo de Software (Tercer Nivel Tecnológico).
 - Modalidad: 100% en línea.
 - Propósito: «Convierte problemas reales en soluciones digitales».
 - Competencias: Programación web y móvil, diseño de arquitecturas, bases de datos y productos digitales funcionales.
-- Dirigido a: Personas desde cero, programadores empíricos/autodidactas que necesitan título oficial y técnicos.
+- Dirigido a: Personas desde cero, programadores empíricos/autodidactas que necesitan título oficial y profesionales técnicos.
 
 4. RUTAS DE INGRESO Y ADMISIÓN:
 A) Ruta «Empieza Desde Cero»:
@@ -76,9 +70,9 @@ C) Ruta «ISTCGE ASCEND para Empresas» (B2B Corporativo):
 - 4 Perfiles resultantes: Conector Comercial (Ventas), Constructor Digital (Software), Híbrido y Explorador.
 
 6. PREGUNTAS FRECUENTES (FAQS):
-- ¿Son títulos oficiales? Sí, de Tercer Nivel Tecnológico avalados por el Consejo de Educación Superior (CES) del Ecuador.
-- ¿Requiere asistir presencialmente? No, es 100% en línea, virtual y asincrónica con máxima flexibilidad horaria.
-- ¿Cómo me inscribo o pido asesoría? A través de la página web, completando el formulario de contacto o solicitando contacto por WhatsApp con un asesor educativo.
+- ¿Son títulos oficiales? Sí, títulos oficiales de Tercer Nivel Tecnológico reconocidos por el Consejo de Educación Superior (CES) del Ecuador.
+- ¿Requiere asistir presencialmente? No, es 100% en línea, virtual y asincrónica con máxima flexibilidad.
+- ¿Cómo me inscribo o pido asesoría? A través de la página web, completando el formulario de contacto o solicitando contacto por WhatsApp con un asesor educativo oficial.
 """
 
 SALUDOS_GENERICOS = ["hola", "buenos dias", "buenas tardes", "buenas noches", "saludos", "hola!", "holaa", "buenas", "que tal", "hola nia"]
@@ -88,17 +82,15 @@ def es_saludo_generico(text):
     return clean in SALUDOS_GENERICOS
 
 @st.cache_resource
-def get_rag_system():
+def get_llm():
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key and "GEMINI_API_KEY" in st.secrets:
         api_key = st.secrets["GEMINI_API_KEY"]
         
     if not api_key:
-        st.error("⚠️ Falta configurar 'GEMINI_API_KEY' en los Secrets de Streamlit.")
+        st.error("⚠️ Falta configurar la variable 'GEMINI_API_KEY' en los Secrets de Streamlit.")
         st.stop()
 
-    # Intentar cargar modelos de Gemini
-    llm = None
     for model_name in ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-2.5-flash"]:
         try:
             llm = ChatGoogleGenerativeAI(
@@ -106,48 +98,20 @@ def get_rag_system():
                 temperature=0.2,
                 google_api_key=api_key
             )
-            break
+            return llm
         except Exception:
             continue
             
-    if llm is None:
-        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.2, google_api_key=api_key)
+    return ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.2, google_api_key=api_key)
 
-    vector_store = None
-    if os.path.exists(DB_FAISS_PATH):
-        try:
-            embeddings = GoogleGenerativeAIEmbeddings(
-                model="models/gemini-embedding-001",
-                google_api_key=api_key
-            )
-            vector_store = FAISS.load_local(
-                DB_FAISS_PATH, 
-                embeddings, 
-                allow_dangerous_deserialization=True
-            )
-        except Exception:
-            try:
-                embeddings_hf = HuggingFaceEmbeddings(
-                    model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-                )
-                vector_store = FAISS.load_local(
-                    DB_FAISS_PATH, 
-                    embeddings_hf, 
-                    allow_dangerous_deserialization=True
-                )
-            except Exception:
-                vector_store = None
-
-    return vector_store, llm
-
-# --- CONFIGURACIÓN DE LA INTERFAZ STREAMLIT ---
+# --- CONFIGURACIÓN DE LA PÁGINA STREAMLIT ---
 st.set_page_config(
     page_title="NIA | Asistente Virtual ISTCGE",
     page_icon="🎓",
     layout="wide"
 )
 
-# Estilos CSS Personalizados Premium para ISTCGE
+# Estilos CSS Personalizados Premium
 st.markdown("""
     <style>
     .stApp { 
@@ -173,26 +137,26 @@ st.markdown("""
         border: 1px solid rgba(59, 130, 246, 0.3) !important;
         border-radius: 12px !important;
     }
-    .bot-badge {
+    .badge-online {
         background: linear-gradient(135deg, #2563eb, #1d4ed8);
         color: white;
-        padding: 3px 10px;
-        border-radius: 12px;
+        padding: 4px 12px;
+        border-radius: 20px;
         font-size: 0.75rem;
         font-weight: 600;
-        letter-spacing: 0.5px;
+        border: 1px solid rgba(56, 189, 248, 0.4);
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Encabezado principal
+# Encabezado
 st.markdown("""
 <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 16px;">
     <div>
-        <h2 style="margin: 0; font-size: 1.6rem; color: #60a5fa !important;">✨ NIA | Asistente Virtual ISTCGE</h2>
-        <p style="margin: 0; font-size: 0.9rem; color: #94a3b8 !important;">Ecosistema Formativo ASCEND • Carreras 100% Online</p>
+        <h2 style="margin: 0; font-size: 1.5rem; color: #60a5fa !important;">✨ NIA | Asistente Virtual ISTCGE</h2>
+        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8 !important;">Ecosistema Formativo ASCEND • Carreras 100% Online</p>
     </div>
-    <span class="bot-badge">ONLINE 24/7</span>
+    <span class="badge-online">ONLINE 24/7</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -201,46 +165,31 @@ if "messages" not in st.session_state:
     st.session_state.messages = [
         {
             "role": "assistant",
-            "content": "¡Hola! 👋 Soy **NIA**, la asistente virtual del **Instituto Superior Tecnológico CGE (ISTCGE)** y nuestro ecosistema **ASCEND**.\n\nEstoy aquí para brindarte información sobre nuestras carreras de tercer nivel (Desarrollo de Software y Ventas Digitales), homologación y validación de experiencia laboral, test vocacional y beneficios. ¿En qué puedo ayudarte hoy?"
+            "content": "¡Hola! 👋 Soy **NIA**, la asistente virtual del **Instituto Superior Tecnológico CGE (ISTCGE)** y nuestro ecosistema **ASCEND**.\n\nEstoy aquí para orientarte sobre nuestras carreras oficiales de tercer nivel (Desarrollo de Software y Ventas Digitales), convalidación de experiencia laboral, test vocacional y beneficios. ¿En qué puedo ayudarte hoy?"
         }
     ]
 
-# Cargar sistema RAG
-vector_store, llm = get_rag_system()
+# Cargar LLM
+llm = get_llm()
 
-# Prompt del Sistema
-system_prompt_template = ChatPromptTemplate.from_template("""
-<ROL_Y_PERSONALIDAD>
-- Eres **NIA**, la asistente virtual oficial del **Instituto Superior Tecnológico CGE (ISTCGE)** y su plataforma educativa/e-commerce.
-- Eres amable, profesional, cordial, entusiasta, clara y siempre orientada a brindar un excelente servicio al estudiante o postulante.
-- Hablas SIEMPRE en ESPAÑOL neutro y amigable.
-- Tu misión es resolver dudas sobre la oferta académica, programas de estudio, diplomados, modalidades (100% en línea), requisitos de ingreso, convalidaciones, costos, formas de pago y beneficios de estudiar en ISTCGE.
-</ROL_Y_PERSONALIDAD>
+# Prompt del sistema
+system_prompt_template = ChatPromptTemplate.from_messages([
+    ("system", """
+Eres NIA, la asistente virtual oficial del Instituto Superior Tecnológico CGE (ISTCGE) y su ecosistema educativo ASCEND.
+Tu misión es guiar y asesorar a postulantes, estudiantes y empresas con amabilidad, profesionalismo, claridad y entusiasmo.
 
-<NORMAS_DE_RESPUESTA>
-1. Utiliza la INFORMACIÓN DEL CONTEXTO proporcionado para responder con exactitud. Si algo no está en el contexto, indícalo cortésmente e invita a ponerse en contacto con los asesores oficiales de ISTCGE.
-2. Formatea tus respuestas usando negritas, listas ordenadas o con viñetas para que la lectura sea dinámica y atractiva.
-3. Respuestas concisas y directas: evita textos excesivamente largos a menos que el usuario solicite un desglose detallado.
-4. Al final de tu respuesta, invita al usuario a dar el siguiente paso (ej: consultar sobre una carrera, proceso de convalidación o comunicarse por WhatsApp con un asesor).
-5. NUNCA inventes precios, fechas ni requisitos que no aparezcan en la base de conocimientos.
-</NORMAS_DE_RESPUESTA>
+REGLAS DE CONDUCTA:
+1. Responde SIEMPRE en ESPAÑOL con un tono profesional, cercano, empático y motivador.
+2. Basa tus respuestas ESTRICTAMENTE en la INFORMACIÓN INSTITUCIONAL provista abajo.
+3. Formatea con negritas, listas ordenadas o con viñetas para que la respuesta sea muy amigable y fácil de leer.
+4. Si algo no está en el contexto, invítalo cordialmente a comunicarse con los asesores oficiales de ISTCGE por WhatsApp o el formulario web.
+5. Finaliza siempre con una pregunta cordial invitando al usuario a continuar su consulta o iniciar su proceso de admisión.
 
-<CONTEXTO_DE_CONOCIMIENTOS_ISTCGE>
+INFORMACIÓN INSTITUCIONAL OFICIAL DE ISTCGE:
 {context}
-</CONTEXTO_DE_CONOCIMIENTOS_ISTCGE>
-
-<CONSULTA_DEL_USUARIO>
-{input}
-</CONSULTA_DEL_USUARIO>
-
-RESPUESTA (COMO NIA):
-""")
-
-if vector_store:
-    document_chain = create_stuff_documents_chain(llm, system_prompt_template)
-    qa_chain = create_retrieval_chain(vector_store.as_retriever(search_kwargs={"k": 4}), document_chain)
-else:
-    qa_chain = None
+"""),
+    ("human", "{input}")
+])
 
 # Renderizar historial
 for msg in st.session_state.messages:
@@ -248,26 +197,24 @@ for msg in st.session_state.messages:
         st.markdown(msg["content"])
 
 # Capturar interacción del usuario
-if prompt := st.chat_input("Escribe tu pregunta sobre carreras, costos, matrícula o cursos..."):
+if prompt := st.chat_input("Escribe tu pregunta sobre carreras, convalidación o admisión..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
-        
+
     with st.chat_message("assistant"):
-        with st.spinner("NIA está consultando la información institucional..."):
-            try:
-                if es_saludo_generico(prompt):
-                    response = "¡Hola! Qué gusto saludarte. 😊 ¿Qué información de **ISTCGE** te gustaría consultar hoy? Puedo ayudarte con carreras, convalidación de experiencia laboral, test vocacional o el proceso de matrícula."
-                elif qa_chain:
-                    result = qa_chain.invoke({"input": prompt})
-                    response = result["answer"]
-                else:
+        if es_saludo_generico(prompt):
+            response = "¡Hola! Qué gusto saludarte. 😊 ¿Qué información de **ISTCGE** te gustaría consultar hoy? Puedo ayudarte con carreras, convalidación de experiencia, test vocacional o el proceso de matrícula."
+            st.markdown(response)
+            st.session_state.messages.append({"role": "assistant", "content": response})
+        else:
+            with st.spinner("NIA está consultando la información institucional..."):
+                try:
                     chain = system_prompt_template | llm
                     result = chain.invoke({"context": KNOWLEDGE_CONTEXT, "input": prompt})
                     response = result.content
-                    
-                st.markdown(response)
-                st.session_state.messages.append({"role": "assistant", "content": response})
-            except Exception as e:
-                err_msg = f"Ocurrió un inconveniente al procesar tu consulta: {str(e)}"
-                st.error(err_msg)
+                    st.markdown(response)
+                    st.session_state.messages.append({"role": "assistant", "content": response})
+                except Exception as e:
+                    err_msg = f"Ocurrió un inconveniente al procesar tu consulta: {str(e)}"
+                    st.error(err_msg)
