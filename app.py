@@ -1,78 +1,55 @@
 import streamlit as st
 import os
+import google.generativeai as genai
 from dotenv import load_dotenv
 
-# Carga de variables de entorno (.env o Secrets de Streamlit Cloud)
+# Carga de variables de entorno
 load_dotenv()
 
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_google_genai import ChatGoogleGenerativeAI
+# --- CONFIGURACIÓN DE PÁGINA STREAMLIT ---
+st.set_page_config(
+    page_title="NIA | Asistente Virtual Oficial ISTCGE",
+    page_icon="🎓",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
-# --- BASE DE CONOCIMIENTO EMBEBIDA (INFORMACIÓN OFICIAL ISTCGE / ASCEND) ---
+# --- BASE DE CONOCIMIENTO INSTITUCIONAL Y COMERCIAL (ISTCGE / ASCEND) ---
 KNOWLEDGE_CONTEXT = """
 1. IDENTIDAD INSTITUCIONAL Y DATOS GENERALES:
 - Nombre oficial: Instituto Superior Tecnológico CGE (ISTCGE).
-- Plataforma y Ecosistema Educativo: ASCEND (Sistema de Formación Superior 100% en línea CGE-Ascend).
-- Nivel Académico y Titulación: Carreras con titulación oficial de Tercer Nivel Tecnológico (Tecnologías Superiores).
-- Modalidad de Estudio: 100% en línea (virtual, asincrónica y flexible, compatible con trabajo, familia y emprendimiento).
-- Respaldo Normativo y Legal: Procesos académicos estructurados conforme a la normativa del Consejo de Educación Superior (CES) y las regulaciones vigentes en la República del Ecuador.
-- Garantías Académicas: Evaluación por profesionales académicos especializados, respaldo docente de alta calidad, confidencialidad absoluta de la documentación.
-- Slogan y Filosofía: «No solo estudies una carrera. Construye tu siguiente nivel. Integramos aprendizaje práctico, inteligencia artificial, mentorías y webinars para que avances mientras trabajas, emprendes o cuidas a los tuyos».
-- Promesa de Valor: «Estudiar en línea te da flexibilidad. Crecer en un ecosistema te da mucho más. No se trata solo de estudiar en línea, se trata de avanzar con propósito y apoyo real. No tienes que detener tu vida para avanzar».
+- Sitio Web Oficial: https://web.istcge.edu.ec/
+- Ecosistema Educativo: ASCEND (Formación Superior 100% en línea).
+- Títulos Otorgados: Títulos Oficiales de Tercer Nivel Tecnológico avalados por el Consejo de Educación Superior (CES) del Ecuador.
+- Modalidad: 100% en línea (virtual, flexible y asincrónica, compatible con trabajo y familia).
+- Slogan y Filosofía: «No solo estudies una carrera. Construye tu siguiente nivel».
 
-2. EL ECOSISTEMA ASCEND: METODOLOGÍA Y PILARES
-Metodología de Avance en 5 Fases:
-- Fase 1 - APRENDE: Contenidos interactivos de alto nivel, bases conceptuales y teóricas.
-- Fase 2 - APLICA: Aprendizaje práctico aplicable de inmediato. Proyectos reales y simuladores.
-- Fase 3 - POTENCIA: Integración transversal de Inteligencia Artificial (IA) y herramientas digitales avanzadas.
-- Fase 4 - CONECTA: Mentorías, webinars, comunidad estudiantil y acompañamiento humano continuo.
-- Fase 5 - ASCIENDE: Cumplimiento de metas profesionales, inserción laboral, ascensos y escalamiento de negocios.
+2. PROGRAMAS ACADÉMICOS Y CARRERAS:
+A) TECNOLOGÍA SUPERIOR EN DESARROLLO DE SOFTWARE:
+- Título Oficial: Tecnólogo/a Superior en Desarrollo de Software (Tercer Nivel).
+- Lema: «Convierte problemas reales en soluciones digitales».
+- Competencias: Programación web y móvil, bases de datos, arquitectura de software y aplicaciones con Inteligencia Artificial.
+- Dirigido a: Personas que inician desde cero, programadores empíricos y técnicos.
 
-Los 6 Pilares de ASCEND:
-1. Formación Superior: Título oficial de tercer nivel tecnológico avalado por el CES.
-2. Aprendizaje Práctico: 100% práctico basado en proyectos y simuladores.
-3. Emprendimiento: Metodologías y modelos para lanzar y escalar negocios propios.
-4. Inteligencia Artificial Aplicada: IA transversal para potenciar asimilación y rendimiento laboral.
-5. Mentorías, Webinars y Talleres: Actividades periódicas con expertos del sector productivo.
-6. Comunidad y Acompañamiento: Seguimiento docente y red de apoyo constante.
+B) TECNOLOGÍA SUPERIOR EN VENTAS DIGITALES:
+- Título Oficial: Tecnólogo/a Superior en Ventas Digitales (Tercer Nivel).
+- Lema: «Convierte ideas, productos y oportunidades en resultados».
+- Competencias: Estrategias omnicanal, embudos de conversión (funnels), marketing digital, CRM y comercio electrónico (e-commerce).
+- Dirigido a: Emprendedores, vendedores, comerciales y bachilleres.
 
-3. PROGRAMAS ACADÉMICOS (CARRERAS DISPONIBLES):
-A) TECNOLOGÍA SUPERIOR EN VENTAS DIGITALES:
-- Título Oficial: Tecnólogo/a Superior en Ventas Digitales (Tercer Nivel Tecnológico).
-- Modalidad: 100% en línea.
-- Propósito: «Convierte ideas, productos y oportunidades en resultados».
-- Competencias: Estrategias comerciales omnicanal, embudos de ventas (funnels), marketing digital, e-commerce y CRM.
-- Dirigido a: Emprendedores, vendedores tradicionales, bachilleres y equipos comerciales.
+3. RUTAS DE INGRESO Y ADMISIÓN:
+- Ruta «Empieza Desde Cero»: Para quienes no tienen experiencia previa. Aprendizaje práctico desde las bases con IA y tutores.
+- Ruta «Homologación y Validación de Experiencia Laboral»: Permite convalidar materias aprobadas en universidades/institutos o certificar años de experiencia laboral para titularse en menor tiempo.
+- Ruta «ISTCGE para Empresas»: Planes corporativos de titulación y capacitación para equipos de trabajo.
 
-B) TECNOLOGÍA SUPERIOR EN DESARROLLO DE SOFTWARE:
-- Título Oficial: Tecnólogo/a Superior en Desarrollo de Software (Tercer Nivel Tecnológico).
-- Modalidad: 100% en línea.
-- Propósito: «Convierte problemas reales en soluciones digitales».
-- Competencias: Programación web y móvil, diseño de arquitecturas, bases de datos y productos digitales funcionales.
-- Dirigido a: Personas desde cero, programadores empíricos/autodidactas que necesitan título oficial y profesionales técnicos.
+4. TEST VOCACIONAL ASCEND (GRATUITO):
+- Cuestionario de orientación para quienes dudan qué carrera elegir.
+- Identifica 4 perfiles: Conector Comercial (Ventas), Constructor Digital (Software), Híbrido y Explorador.
 
-4. RUTAS DE INGRESO Y ADMISIÓN:
-A) Ruta «Empieza Desde Cero»:
-- Para quienes no poseen formación previa. Formación desde las bases con acompañamiento continuo e IA.
-- Perfiles: Bachilleres, Emprendedores, Trabajadores que cambian de área y exploradores vocacionales.
-
-B) Ruta «Homologación y Validación de Experiencia»:
-- Premisa: «No empieces de nuevo, empieza desde lo que ya sabes. Tu experiencia no debería ser invisible».
-- Homologación de Estudios Previos: Convalidación de materias cursadas en otras universidades o institutos.
-- Validación de Experiencia Laboral: Reconocimiento oficial de años de trabajo, proyectos o negocios mediante evidencias y evaluación práctica para acelerar la titulación.
-- 5 Pasos: 1. Conversamos -> 2. Revisamos -> 3. Evidenciamos -> 4. Evaluamos -> 5. Creces (Ruta personalizada).
-
-C) Ruta «ISTCGE ASCEND para Empresas» (B2B Corporativo):
-- Formación corporativa y convalidación para equipos de trabajo 100% online y sin interrumpir la operatividad del negocio.
-
-5. TEST VOCACIONAL ASCEND (GRATUITO):
-- Orientación para indecisos o con presión familiar.
-- 4 Perfiles resultantes: Conector Comercial (Ventas), Constructor Digital (Software), Híbrido y Explorador.
-
-6. PREGUNTAS FRECUENTES (FAQS):
-- ¿Son títulos oficiales? Sí, títulos oficiales de Tercer Nivel Tecnológico reconocidos por el Consejo de Educación Superior (CES) del Ecuador.
-- ¿Requiere asistir presencialmente? No, es 100% en línea, virtual y asincrónica con máxima flexibilidad.
-- ¿Cómo me inscribo o pido asesoría? A través de la página web, completando el formulario de contacto o solicitando contacto por WhatsApp con un asesor educativo oficial.
+5. VENTAJAS DIFERENCIALES:
+- Inteligencia Artificial aplicada en todas las materias.
+- Clases prácticas basadas en proyectos reales (no pura teoría).
+- Mentorías en vivo, webinars con expertos del sector y acompañamiento humano continuo.
 """
 
 SALUDOS_GENERICOS = ["hola", "buenos dias", "buenas tardes", "buenas noches", "saludos", "hola!", "holaa", "buenas", "que tal", "hola nia"]
@@ -81,82 +58,243 @@ def es_saludo_generico(text):
     clean = text.lower().strip().replace(".", "").replace("!", "").replace("¿", "").replace("?", "")
     return clean in SALUDOS_GENERICOS
 
-@st.cache_resource
-def get_llm():
+# --- OBTENCIÓN RESILIENTE DEL CLIENTE IA DE GEMINI ---
+def get_gemini_response(prompt_text, history_messages):
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key and "GEMINI_API_KEY" in st.secrets:
         api_key = st.secrets["GEMINI_API_KEY"]
-        
+
     if not api_key:
-        st.error("⚠️ Falta configurar la variable 'GEMINI_API_KEY' en los Secrets de Streamlit.")
-        st.stop()
+        return "⚠️ Debes configurar la clave 'GEMINI_API_KEY' en los Secrets de Streamlit."
 
-    for model_name in ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-2.5-flash"]:
+    genai.configure(api_key=api_key)
+
+    # Prompt del sistema con enfoque comercial ISTCGE
+    system_instruction = f"""
+Eres NIA, la asesora virtual oficial y comercial del Instituto Superior Tecnológico CGE (ISTCGE) y su plataforma educativa ASCEND.
+Sitio web oficial: https://web.istcge.edu.ec/
+
+OBJETIVO:
+Guiar, informar, asesorar y motivar a prospectos, estudiantes y empresas interesadas en titularse con carreras oficiales de Tercer Nivel 100% en línea (Desarrollo de Software y Ventas Digitales), convalidación de experiencia laboral y admisiones.
+
+NORMAS DE ATENCIÓN:
+1. Habla SIEMPRE en ESPAÑOL con tono profesional, cálido, comercial, dinámico y muy claro.
+2. Utiliza negritas, listas con viñetas y emojis institucionales (🎓, 💻, 📈, 🚀) para que el mensaje sea muy visual y atractivo.
+3. Basa tus respuestas en la INFORMACIÓN INSTITUCIONAL de ISTCGE.
+4. Concluye siempre con un llamado a la acción comercial o pregunta amable invitando al usuario a matricularse, hacer el test vocacional o solicitar contacto directo por WhatsApp.
+
+INFORMACIÓN INSTITUCIONAL:
+{KNOWLEDGE_CONTEXT}
+"""
+
+    # Modelos a probar en orden de compatibilidad
+    candidate_models = [
+        "gemini-flash-latest",
+        "gemini-1.5-flash-latest",
+        "gemini-pro",
+        "gemini-1.5-flash-8b",
+        "gemini-1.5-flash",
+        "gemini-2.0-flash",
+        "gemini-1.5-pro-latest"
+    ]
+
+    last_error = None
+    for model_name in candidate_models:
         try:
-            llm = ChatGoogleGenerativeAI(
-                model=model_name,
-                temperature=0.2,
-                google_api_key=api_key
+            model = genai.GenerativeModel(
+                model_name=model_name,
+                system_instruction=system_instruction
             )
-            return llm
-        except Exception:
-            continue
-            
-    return ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.2, google_api_key=api_key)
+            # Formatear historial
+            chat = model.start_chat(history=[])
+            response = chat.send_message(prompt_text)
+            if response and response.text:
+                return response.text
+        except Exception as e:
+            # Si el modelo no acepta system_instruction en el constructor, intentarlo combinado
+            try:
+                model_alt = genai.GenerativeModel(model_name=model_name)
+                full_prompt = f"{system_instruction}\n\n[CONSULTA DEL POSTULANTE]:\n{prompt_text}"
+                response = model_alt.generate_content(full_prompt)
+                if response and response.text:
+                    return response.text
+            except Exception as ex:
+                last_error = ex
+                continue
 
-# --- CONFIGURACIÓN DE LA PÁGINA STREAMLIT ---
-st.set_page_config(
-    page_title="NIA | Asistente Virtual ISTCGE",
-    page_icon="🎓",
-    layout="wide"
-)
+    return f"Disculpa, ocurrió un inconveniente con el servicio de IA: {str(last_error)}"
 
-# Estilos CSS Personalizados Premium
+# --- DISEÑO VISUAL CORPORATIVO Y COMERCIAL ISTCGE ---
 st.markdown("""
     <style>
-    .stApp { 
-        background: radial-gradient(circle at top, #0f172a, #020617) !important;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    /* Variables de Color ISTCGE */
+    :root {
+        --cge-blue: #002C5A;
+        --cge-navy: #0F172A;
+        --cge-cyan: #009CDE;
+        --cge-yellow: #FDC901;
+        --cge-bg: #070D18;
     }
-    .stApp, .stApp p, .stApp span, .stApp label, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6, .stApp li {
-        color: #f1f5f9 !important;
+
+    .stApp {
+        background: radial-gradient(circle at 50% 0%, #0d223f 0%, #050a14 100%) !important;
+        font-family: 'Inter', sans-serif !important;
+        color: #F8FAFC !important;
     }
-    header { visibility: hidden; }
-    #MainMenu { visibility: hidden; }
-    footer { visibility: hidden; }
-    .stChatMessage {
-        background-color: rgba(30, 41, 59, 0.6) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 14px !important;
-        margin-bottom: 12px !important;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25) !important;
-        backdrop-filter: blur(8px);
+
+    /* Ocultar elementos innecesarios */
+    header { visibility: hidden !important; }
+    #MainMenu { visibility: hidden !important; }
+    footer { visibility: hidden !important; }
+
+    /* Header Comercial CGE */
+    .cge-header-card {
+        background: linear-gradient(135deg, rgba(0, 44, 90, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%);
+        border: 1px solid rgba(0, 156, 222, 0.3);
+        border-radius: 16px;
+        padding: 20px 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
     }
-    .stChatInputContainer {
-        background-color: #0b0f19 !important;
-        border: 1px solid rgba(59, 130, 246, 0.3) !important;
-        border-radius: 12px !important;
+
+    .cge-title-box h1 {
+        color: #FFFFFF !important;
+        font-size: 1.6rem !important;
+        font-weight: 800 !important;
+        margin: 0 !important;
+        letter-spacing: -0.5px;
     }
-    .badge-online {
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        color: white;
+
+    .cge-title-box p {
+        color: #94A3B8 !important;
+        font-size: 0.9rem !important;
+        margin: 4px 0 0 0 !important;
+    }
+
+    .cge-badge-gold {
+        background: linear-gradient(135deg, #FDC901, #D97706);
+        color: #000000 !important;
+        font-weight: 700;
+        font-size: 0.75rem;
         padding: 4px 12px;
         border-radius: 20px;
-        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .cge-badge-status {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34D399;
+        border: 1px solid rgba(52, 211, 153, 0.3);
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-size: 0.8rem;
         font-weight: 600;
-        border: 1px solid rgba(56, 189, 248, 0.4);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #10B981;
+        border-radius: 50%;
+        box-shadow: 0 0 10px #10B981;
+    }
+
+    /* Tarjetas de Beneficios Comerciales */
+    .cge-highlights-container {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .cge-highlight-chip {
+        background: rgba(0, 44, 90, 0.4);
+        border: 1px solid rgba(0, 156, 222, 0.2);
+        color: #E2E8F0 !important;
+        padding: 8px 14px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Burbujas de Chat */
+    .stChatMessage {
+        background: rgba(15, 23, 42, 0.7) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 14px !important;
+        margin-bottom: 12px !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+        backdrop-filter: blur(10px);
+    }
+
+    /* Input */
+    .stChatInputContainer {
+        background-color: #0b1320 !important;
+        border: 1px solid rgba(0, 156, 222, 0.4) !important;
+        border-radius: 14px !important;
+    }
+
+    /* CTA WhatsApp Bar */
+    .whatsapp-cta {
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: white !important;
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: transform 0.2s;
+    }
+    .whatsapp-cta:hover {
+        transform: scale(1.03);
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Encabezado
+# --- HEADER COMERCIAL ISTCGE ---
 st.markdown("""
-<div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 16px;">
-    <div>
-        <h2 style="margin: 0; font-size: 1.5rem; color: #60a5fa !important;">✨ NIA | Asistente Virtual ISTCGE</h2>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8 !important;">Ecosistema Formativo ASCEND • Carreras 100% Online</p>
+<div class="cge-header-card">
+    <div class="cge-title-box">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+            <h1>🎓 NIA • Asesora Oficial ISTCGE</h1>
+            <span class="cge-badge-gold">Oficial CES</span>
+        </div>
+        <p>Instituto Superior Tecnológico CGE • Plataforma Formativa ASCEND (100% Online)</p>
     </div>
-    <span class="badge-online">ONLINE 24/7</span>
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="cge-badge-status">
+            <span class="status-dot"></span>
+            Asesora en Línea
+        </span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# --- CHIPS INFORMATIVOS COMERCIALES ---
+st.markdown("""
+<div class="cge-highlights-container">
+    <div class="cge-highlight-chip">💻 Tecnología en Desarrollo de Software</div>
+    <div class="cge-highlight-chip">📈 Tecnología en Ventas Digitales</div>
+    <div class="cge-highlight-chip">📜 Convalidación de Experiencia Laboral</div>
+    <div class="cge-highlight-chip">🧭 Test Vocacional Gratuito</div>
+    <div class="cge-highlight-chip">⚡ 100% Virtual Asincrónico</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -165,56 +303,28 @@ if "messages" not in st.session_state:
     st.session_state.messages = [
         {
             "role": "assistant",
-            "content": "¡Hola! 👋 Soy **NIA**, la asistente virtual del **Instituto Superior Tecnológico CGE (ISTCGE)** y nuestro ecosistema **ASCEND**.\n\nEstoy aquí para orientarte sobre nuestras carreras oficiales de tercer nivel (Desarrollo de Software y Ventas Digitales), convalidación de experiencia laboral, test vocacional y beneficios. ¿En qué puedo ayudarte hoy?"
+            "content": "¡Hola! 👋 Soy **NIA**, asesora virtual del **Instituto Superior Tecnológico CGE (ISTCGE)** y nuestro ecosistema **ASCEND**.\n\nTe ayudo con todo sobre nuestras **carreras oficiales de tercer nivel 100% online** (Desarrollo de Software y Ventas Digitales), homologación de materias, validación de experiencia laboral y admisiones.\n\n¿En qué carrera o trámite estás interesado hoy?"
         }
     ]
 
-# Cargar LLM
-llm = get_llm()
-
-# Prompt del sistema
-system_prompt_template = ChatPromptTemplate.from_messages([
-    ("system", """
-Eres NIA, la asistente virtual oficial del Instituto Superior Tecnológico CGE (ISTCGE) y su ecosistema educativo ASCEND.
-Tu misión es guiar y asesorar a postulantes, estudiantes y empresas con amabilidad, profesionalismo, claridad y entusiasmo.
-
-REGLAS DE CONDUCTA:
-1. Responde SIEMPRE en ESPAÑOL con un tono profesional, cercano, empático y motivador.
-2. Basa tus respuestas ESTRICTAMENTE en la INFORMACIÓN INSTITUCIONAL provista abajo.
-3. Formatea con negritas, listas ordenadas o con viñetas para que la respuesta sea muy amigable y fácil de leer.
-4. Si algo no está en el contexto, invítalo cordialmente a comunicarse con los asesores oficiales de ISTCGE por WhatsApp o el formulario web.
-5. Finaliza siempre con una pregunta cordial invitando al usuario a continuar su consulta o iniciar su proceso de admisión.
-
-INFORMACIÓN INSTITUCIONAL OFICIAL DE ISTCGE:
-{context}
-"""),
-    ("human", "{input}")
-])
-
-# Renderizar historial
+# Renderizar mensajes
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# Capturar interacción del usuario
-if prompt := st.chat_input("Escribe tu pregunta sobre carreras, convalidación o admisión..."):
+# Capturar mensaje del usuario
+if prompt := st.chat_input("Escribe tu consulta sobre carreras, costos, convalidación o matrícula..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
         if es_saludo_generico(prompt):
-            response = "¡Hola! Qué gusto saludarte. 😊 ¿Qué información de **ISTCGE** te gustaría consultar hoy? Puedo ayudarte con carreras, convalidación de experiencia, test vocacional o el proceso de matrícula."
-            st.markdown(response)
-            st.session_state.messages.append({"role": "assistant", "content": response})
+            reply = "¡Hola! Qué gusto saludarte. 😊 En **ISTCGE** te ofrecemos carreras tecnológicas oficiales de tercer nivel 100% en línea:\n\n* 💻 **Tecnología Superior en Desarrollo de Software**\n* 📈 **Tecnología Superior en Ventas Digitales**\n* 📜 **Homologación y Validación de Experiencia Laboral**\n\n¿De cuál de ellas te gustaría recibir más información o costos?"
+            st.markdown(reply)
+            st.session_state.messages.append({"role": "assistant", "content": reply})
         else:
-            with st.spinner("NIA está consultando la información institucional..."):
-                try:
-                    chain = system_prompt_template | llm
-                    result = chain.invoke({"context": KNOWLEDGE_CONTEXT, "input": prompt})
-                    response = result.content
-                    st.markdown(response)
-                    st.session_state.messages.append({"role": "assistant", "content": response})
-                except Exception as e:
-                    err_msg = f"Ocurrió un inconveniente al procesar tu consulta: {str(e)}"
-                    st.error(err_msg)
+            with st.spinner("NIA está consultando la información oficial..."):
+                response_text = get_gemini_response(prompt, st.session_state.messages)
+                st.markdown(response_text)
+                st.session_state.messages.append({"role": "assistant", "content": response_text})
