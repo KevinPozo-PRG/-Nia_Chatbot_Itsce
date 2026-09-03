@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demostración Integración NIA ISTCGE</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .iframe-container {
+            width: 100%;
+            height: 680px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Integración Web: Asistente NIA ISTCGE</h1>
+            <p>Ejemplo de inserción de chatbot mediante iframe para la web de E-Commerce / Institucional</p>
+        </div>
+        
+        <div class="card">
+            <iframe 
+                class="iframe-container"
+                src="https://TU_APP.streamlit.app/?embed=true" 
+                allow="clipboard-read; clipboard-write">
+            </iframe>
+        </div>
+    </div>
+</body>
+</html>
