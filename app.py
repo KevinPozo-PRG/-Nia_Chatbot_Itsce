@@ -136,12 +136,11 @@ Recuerda responder como NIA, asesora comercial de ISTCGE, guiando al postulante 
     except Exception as e:
         yield f"Disculpa, ocurrió un inconveniente al conectar con el servidor: {str(e)}"
 
-# --- PALETA Y ESTILOS OFICIALES DEL SITIO ISTCGE ASCEND (DEL PDF OFICIAL) ---
+# --- ESTILOS VISUALES: GAMA OFICIAL SITIO ISTCGE ASCEND + INPUT 100% INTEGRADO ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-    /* Variables Oficiales ISTCGE ASCEND */
     :root {
         --cge-bg-dark: #050A18;
         --cge-card-bg: #0B142B;
@@ -150,22 +149,22 @@ st.markdown("""
         --cge-gold: #FDC901;
         --cge-text-light: #F8FAFC;
         --cge-text-muted: #94A3B8;
-        --cge-border: rgba(0, 210, 255, 0.25);
+        --cge-border: rgba(0, 210, 255, 0.28);
     }
 
-    /* Fondo Deep Space Navy oficial */
+    /* Fondo principal */
     .stApp {
         background: radial-gradient(circle at 50% 0%, #0d1b3e 0%, #050a18 100%) !important;
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
         color: var(--cge-text-light) !important;
     }
 
-    /* Ocultar barra superior y footer */
+    /* Ocultar barra superior y footer de Streamlit */
     header { visibility: hidden !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
 
-    /* Ocultar avatares e iconos molestos */
+    /* Ocultar avatares e iconos */
     [data-testid="stChatMessageAvatarCustom"],
     [data-testid="stChatMessageAvatarUser"],
     [data-testid="stChatMessageAvatarAssistant"],
@@ -173,12 +172,12 @@ st.markdown("""
         display: none !important;
     }
 
-    /* Encabezado con paleta oficial ISTCGE ASCEND */
+    /* Encabezado oficial ISTCGE ASCEND */
     .ascend-header-card {
         max-width: 680px;
         margin: 0 auto 14px auto;
         padding: 16px 22px;
-        background: rgba(11, 20, 43, 0.85);
+        background: rgba(11, 20, 43, 0.9);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         border: 1px solid var(--cge-border);
@@ -261,12 +260,12 @@ st.markdown("""
         box-shadow: 0 0 8px #10B981;
     }
 
-    /* Burbujas de Mensajes estilo Tarjeta Oscura Neón CGE */
+    /* Burbujas de Mensajes estilo Tarjeta Oscura Neón */
     .stChatMessage {
         max-width: 680px !important;
         margin: 0 auto 10px auto !important;
-        background: rgba(11, 20, 43, 0.85) !important;
-        border: 1px solid rgba(0, 210, 255, 0.18) !important;
+        background: rgba(11, 20, 43, 0.9) !important;
+        border: 1px solid rgba(0, 210, 255, 0.22) !important;
         border-radius: 16px !important;
         padding: 14px 20px !important;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
@@ -291,9 +290,9 @@ st.markdown("""
     }
 
     .stButton button {
-        background: rgba(11, 20, 43, 0.75) !important;
+        background: rgba(11, 20, 43, 0.8) !important;
         color: #E2E8F0 !important;
-        border: 1px solid rgba(0, 210, 255, 0.3) !important;
+        border: 1px solid rgba(0, 210, 255, 0.35) !important;
         border-radius: 12px !important;
         font-size: 12.5px !important;
         font-weight: 600 !important;
@@ -310,56 +309,76 @@ st.markdown("""
     .stButton button:hover {
         border-color: var(--cge-cyan) !important;
         color: #FFFFFF !important;
-        background: linear-gradient(135deg, rgba(0, 114, 255, 0.4), rgba(0, 210, 255, 0.2)) !important;
+        background: linear-gradient(135deg, rgba(0, 114, 255, 0.4), rgba(0, 210, 255, 0.25)) !important;
         transform: translateY(-2px) !important;
-        box-shadow: 0 0 15px rgba(0, 210, 255, 0.25) !important;
+        box-shadow: 0 0 15px rgba(0, 210, 255, 0.3) !important;
     }
 
-    /* Barra de Input con Paleta Oficial e Iluminación Cyan */
+    /* =========================================================================
+       ELIMINACIÓN DE LA FRANJA BLANCA INFERIOR Y ESTILO 100% INTEGRADO DEL INPUT
+       ========================================================================= */
+    /* 1. Eliminar cualquier franja blanca del footer/bottom de Streamlit */
+    [data-testid="stBottomBlockContainer"],
+    [data-testid="stBottomBlockContainer"] > div,
+    .stChatFloatingInputContainer,
+    .stBottom {
+        background: transparent !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
     .stChatInputContainer,
     div[data-testid="stChatInput"],
-    .stChatInput,
-    [data-testid="stBottomBlockContainer"] {
+    .stChatInput {
         max-width: 680px !important;
         margin: 0 auto !important;
-        background-color: transparent !important;
+        background: transparent !important;
     }
 
+    /* 2. Recuadro del Input: Color azul oscuro con borde cian brillante */
     div[data-testid="stChatInput"] {
-        background: rgba(11, 20, 43, 0.95) !important;
-        border: 1.5px solid rgba(0, 210, 255, 0.4) !important;
+        background-color: #0B142B !important;
+        border: 1.5px solid #00D2FF !important;
         border-radius: 16px !important;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 210, 255, 0.15) !important;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 210, 255, 0.25) !important;
         overflow: hidden !important;
-        transition: all 0.2s ease;
+        transition: all 0.2s ease !important;
     }
 
     div[data-testid="stChatInput"]:focus-within {
-        border-color: var(--cge-cyan) !important;
-        box-shadow: 0 0 20px rgba(0, 210, 255, 0.35) !important;
+        border-color: #00D2FF !important;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5), 0 0 25px rgba(0, 210, 255, 0.5) !important;
     }
 
-    /* TEXTO NÍTIDO BLANCO EN EL INPUT */
+    /* 3. TEXTO AL ESCRIBIR: BLANCO PURO Y TOTALMENTE NÍTIDO */
     .stChatInputContainer textarea,
     div[data-testid="stChatInput"] textarea,
     .stChatInput textarea,
     textarea[data-testid="stChatInputTextArea"],
     textarea.st-bk {
-        background-color: transparent !important;
+        background-color: #0B142B !important;
         color: #FFFFFF !important;
-        font-size: 14.5px !important;
-        font-weight: 500 !important;
-        caret-color: var(--cge-cyan) !important;
+        font-size: 15px !important;
+        font-weight: 600 !important;
+        caret-color: #00D2FF !important;
         -webkit-text-fill-color: #FFFFFF !important;
         opacity: 1 !important;
     }
 
+    /* 4. Placeholder */
     .stChatInputContainer textarea::placeholder,
     div[data-testid="stChatInput"] textarea::placeholder,
     textarea[data-testid="stChatInputTextArea"]::placeholder {
         color: #94A3B8 !important;
         -webkit-text-fill-color: #94A3B8 !important;
-        font-weight: 450;
+        font-weight: 400 !important;
+    }
+
+    /* 5. Botón de enviar */
+    div[data-testid="stChatInput"] button {
+        color: #00D2FF !important;
+        background: transparent !important;
     }
     </style>
 """, unsafe_allow_html=True)
