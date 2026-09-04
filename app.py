@@ -19,23 +19,24 @@ st.set_page_config(
 KNOWLEDGE_CONTEXT = """
 1. IDENTIDAD INSTITUCIONAL Y PROPUESTA DE VALOR:
 - Nombre oficial: Instituto Superior Tecnológico CGE (ISTCGE) - Ecosistema Formativo ASCEND.
+- Significado de NIA: Navega (ayuda a encontrar información), Impulsa (orienta el siguiente paso) y Asciende (acompaña a construir posibilidades).
 - Sitio Web Oficial: https://web.istcge.edu.ec/
 - Títulos: Títulos Oficiales de Tercer Nivel Tecnológico avalados por el Consejo de Educación Superior (CES) del Ecuador (registrados en SENESCYT).
 - Modalidad: 100% en línea (virtual, asincrónica y flexible, compatible con trabajo y responsabilidades familiares).
 - Slogan y Filosofía: «No solo estudies una carrera. Construye tu siguiente nivel».
 - Metodología en 5 Fases: 1. Aprende -> 2. Aplica -> 3. Potencia (con IA) -> 4. Conecta (mentorías) -> 5. Asciende.
 
-2. OFERTA DE CARRERAS:
+2. OFERTA DE CARRERAS OFICIALES:
 A) TECNOLOGÍA SUPERIOR EN DESARROLLO DE SOFTWARE:
 - Título Oficial: Tecnólogo/a Superior en Desarrollo de Software (Tercer Nivel).
 - Lema: «Convierte problemas reales en soluciones digitales».
-- Beneficios: Programación desde cero, desarrollo web y móvil, bases de datos e Inteligencia Artificial aplicada con proyectos reales para armar tu portafolio.
+- Competencias: Programación desde cero, desarrollo web y móvil, bases de datos e Inteligencia Artificial aplicada con proyectos reales.
 - Dirigido a: Bachilleres, programadores empíricos, autodidactas y técnicos que buscan título oficial y mejores ingresos.
 
 B) TECNOLOGÍA SUPERIOR EN VENTAS DIGITALES:
 - Título Oficial: Tecnólogo/a Superior en Ventas Digitales (Tercer Nivel).
 - Lema: «Convierte ideas, productos y oportunidades en resultados».
-- Beneficios: Estrategias omnicanal, embudos de venta (funnels), marketing digital, e-commerce y CRM para disparar ventas.
+- Competencias: Estrategias omnicanal, embudos de venta (funnels), marketing digital, e-commerce y CRM para disparar ventas.
 - Dirigido a: Emprendedores, vendedores tradicionales, bachilleres y colaboradores comerciales.
 
 3. RUTAS DE INGRESO Y ADMISIÓN:
@@ -43,43 +44,46 @@ B) TECNOLOGÍA SUPERIOR EN VENTAS DIGITALES:
 - «Homologación y Validación de Experiencia Laboral»: ¡No empieces de cero! Si tienes materias aprobadas o años de experiencia en el área, convalidamos tus conocimientos para titularte en menor tiempo.
 - «ISTCGE para Empresas»: Formación corporativa y convalidación para equipos de trabajo.
 
-4. TEST VOCACIONAL ASCEND (GRATUITO):
-- Cuestionario orientativo de 3 minutos para descubrir tu perfil afín: Conector Comercial (Ventas), Constructor Digital (Software), Híbrido o Explorador.
+4. TEST VOCACIONAL ASCEND (GRATUITO Y ORIENTATIVO):
+- Cuestionario de 3 minutos para explorar intereses y perfil afín: Conector Comercial (Ventas), Constructor Digital (Software), Híbrido o Explorador.
+- Alcance: Es una herramienta orientativa, NO es un diagnóstico psicológico clínico ni decide por el estudiante.
 
-5. VENTAJAS Y MANEJO DE OBJECIONES:
-- Flexibilidad: Plataforma disponible 24/7 para estudiar a tu propio ritmo.
-- Experiencia: No se requiere experiencia previa en programación ni ventas.
-- Validez oficial: Títulos oficiales de 3er nivel legalmente avalados en Ecuador.
-- Asesoría: Invitar a iniciar la matrícula o solicitar contacto por WhatsApp con un asesor oficial.
+5. CANALES OFICIALES DE DERIVACIÓN COMERCIAL (WHATSAPP):
+- Número de WhatsApp Oficial: 099 911 5216
+- Enlace directo a WhatsApp: https://wa.me/593999115216
+- Cuándo derivar obligatoriamente: Consultas sobre costos vigentes, cuotas, descuentos, becas, fechas de inicio, requisitos de inscripción y prediagnóstico de asignaturas a homologar.
 """
 
 SYSTEM_INSTRUCTION = f"""
-Eres NIA, la Asesora Comercial de Admisiones y Ventas del Instituto Superior Tecnológico CGE (ISTCGE) y su plataforma educativa ASCEND.
+Eres NIA, la guía virtual y asesora comercial de ISTCGE ASCEND. Tu nombre representa tres acciones: Navega, Impulsa y Asciende.
 Sitio web oficial: https://web.istcge.edu.ec/
 
-TU ROL ES 100% COMERCIAL Y DE VENTAS:
-- No eres tutora ni docente académica. Eres una ejecutiva comercial de admisiones amable, enérgica, ejecutiva y enfocada en orientar, persuadir y captar estudiantes para ISTCGE.
-- Tu misión es presentar las ventajas de nuestras carreras oficiales de tercer nivel 100% en línea (Desarrollo de Software y Ventas Digitales), destacar la homologación de experiencia laboral y guiar al usuario hacia la matrícula o el contacto por WhatsApp con un asesor.
+REGLAS OBLIGATORIAS DE PERSONALIDAD Y FORMATO (DOCUMENTO DE ENTRENAMIENTO OFICIAL):
+1. Tono y Voz: Español claro, natural y ecuatoriano neutral. Trata siempre al usuario de "tú". Habla con calidez, entusiasmo, profesionalismo y enfoque comercial consultivo.
+2. CONTINUIDAD CONVERSACIONAL (¡MUY IMPORTANTE!):
+   - NUNCA vuelvas a saludar (ej: "¡Hola! Soy NIA...") si ya estás conversando con el usuario o si el usuario responde a una pregunta previa como "sí", "claro", "por favor", "cuéntame más".
+   - Continúa de forma fluida la conversación respondiendo directamente a la pregunta anterior que le formulaste.
+3. Regla de Emojis: Incluye EXACTAMENTE 2 a 3 emojis pertinentes por mensaje (por ejemplo: 👋, 💻, 📈, 🚀, 💬, 📲). No sobrecargues ni uses emojis decorativos excesivos.
+4. Brevedad y Concisión: Responde primero lo esencial en 35 a 75 palabras aproximadamente. Una idea principal por párrafo.
+5. Regla de Derivación Comercial a WhatsApp: Cuando el usuario consulte por costos vigentes, cuotas, facilidades de pago, becas, fechas de inicio, requisitos de inscripción o evaluación de homologación de materias, da una respuesta breve y DERIVA OBLIGATORIAMENTE al número oficial de WhatsApp 099 911 5216 o al enlace https://wa.me/593999115216.
+6. Transparencia y Honestidad: No prometas un número exacto de materias homologadas antes del prediagnóstico oficial, ni prometas admisión o empleo garantizado. El test vocacional es estrictamente orientativo.
+7. Cierre: Concluye siempre con una sola pregunta breve o paso de continuidad.
 
-PAUTAS DE RESPUESTA:
-1. Responde SIEMPRE en ESPAÑOL, con tono cálido, profesional, dinámico y vendedor.
-2. Usa negritas para destacar ideas principales y listas ordenadas o con viñetas para facilitar la lectura.
-3. Respuestas concisas, bien estructuradas y directas al grano (máximo 2 párrafos o viñetas claras).
-4. Concluye siempre con una pregunta amable de cierre comercial invitando al siguiente paso.
-
-INFORMACIÓN INSTITUCIONAL Y COMERCIAL:
+INFORMACIÓN INSTITUCIONAL Y COMERCIAL OFICIAL:
 {KNOWLEDGE_CONTEXT}
 """
 
-SALUDOS_GENERICOS = ["hola", "buenos dias", "buenas tardes", "buenas noches", "saludos", "hola!", "holaa", "buenas", "que tal", "hola nia", "info", "informacion", "precio", "costo"]
+SALUDOS_GENERICOS = ["hola", "buenos dias", "buenas tardes", "buenas noches", "saludos", "hola!", "holaa", "buenas", "que tal", "hola nia"]
 
-def es_saludo_generico(text):
+def es_saludo_inicial_unico(text, history):
+    # Solo es saludo inicial si la conversación apenas comenzó
+    if len(history) > 2:
+        return False
     clean = text.lower().strip().replace(".", "").replace("!", "").replace("¿", "").replace("?", "")
     return clean in SALUDOS_GENERICOS
 
 # --- OBTENCIÓN DE CLAVES API (OPENROUTER O GEMINI) ---
 def get_api_credentials():
-    # Prioridad 1: OpenRouter
     openrouter_key = os.getenv("OPENROUTER_API_KEY")
     if not openrouter_key and "OPENROUTER_API_KEY" in st.secrets:
         openrouter_key = st.secrets["OPENROUTER_API_KEY"]
@@ -87,7 +91,6 @@ def get_api_credentials():
     if openrouter_key:
         return "openrouter", openrouter_key
 
-    # Prioridad 2: Gemini Direct API Key
     gemini_key = os.getenv("GEMINI_API_KEY")
     if not gemini_key and "GEMINI_API_KEY" in st.secrets:
         gemini_key = st.secrets["GEMINI_API_KEY"]
@@ -97,8 +100,8 @@ def get_api_credentials():
 
     return None, None
 
-# --- GENERADOR OPENROUTER SSE CON MODELOS ACTIVOS VERIFICADOS Y AUTO-ROUTER ---
-def stream_openrouter_response(prompt_text, api_key):
+# --- GENERADOR OPENROUTER SSE CON CONTEXTO CONVERSACIONAL COMPLETO ---
+def stream_openrouter_response(history_messages, api_key):
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -107,7 +110,12 @@ def stream_openrouter_response(prompt_text, api_key):
         "X-Title": "NIA ISTCGE Chatbot"
     }
 
-    # Modelos Gratuitos Activos Verificados en OpenRouter
+    # Armar historial completo para que el modelo tenga memoria perfecta
+    messages_payload = [{"role": "system", "content": SYSTEM_INSTRUCTION}]
+    for msg in history_messages:
+        role = "assistant" if msg["role"] == "assistant" else "user"
+        messages_payload.append({"role": role, "content": msg["content"]})
+
     candidate_models = [
         "meta-llama/llama-3.3-70b-instruct:free",
         "deepseek/deepseek-r1:free",
@@ -122,10 +130,7 @@ def stream_openrouter_response(prompt_text, api_key):
     for model_name in candidate_models:
         payload = {
             "model": model_name,
-            "messages": [
-                {"role": "system", "content": SYSTEM_INSTRUCTION},
-                {"role": "user", "content": prompt_text}
-            ],
+            "messages": messages_payload,
             "temperature": 0.7,
             "stream": True
         }
@@ -160,13 +165,22 @@ def stream_openrouter_response(prompt_text, api_key):
 
     yield f"Disculpa, ocurrió un inconveniente momentáneo al conectar con el servidor: {last_error}"
 
-# --- GENERADOR FALLBACK DIRECTO DE GEMINI ---
-def stream_gemini_response(prompt_text, api_key):
-    full_prompt = f"{SYSTEM_INSTRUCTION}\n\n[CONSULTA DEL PROSPECTO]:\n{prompt_text}"
+# --- GENERADOR FALLBACK DIRECTO DE GEMINI CON CONTEXTO COMPLETO ---
+def stream_gemini_response(history_messages, api_key):
     candidate_models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-latest"]
     
+    # Armar historial completo para Gemini REST
+    contents_payload = []
+    # Incluir instrucción del sistema como primera parte
+    contents_payload.append({"role": "user", "parts": [{"text": f"INSTRUCCIÓN DEL SISTEMA:\n{SYSTEM_INSTRUCTION}"}]})
+    contents_payload.append({"role": "model", "parts": [{"text": "Entendido. Asumiré la personalidad de NIA con memoria completa del historial de conversación."}]})
+
+    for msg in history_messages:
+        role = "model" if msg["role"] == "assistant" else "user"
+        contents_payload.append({"role": role, "parts": [{"text": msg["content"]}]})
+
     payload = {
-        "contents": [{"parts": [{"text": full_prompt}]}],
+        "contents": contents_payload,
         "generationConfig": {"temperature": 0.7, "maxOutputTokens": 800}
     }
     headers = {"Content-Type": "application/json"}
@@ -197,17 +211,17 @@ def stream_gemini_response(prompt_text, api_key):
 
     yield "Disculpa, nuestros servidores de IA están procesando una alta carga. Por favor reintenta en un instante."
 
-# --- FUNCIÓN UNIFICADA DE RESPUESTA ---
-def generate_ai_response(prompt_text):
+# --- FUNCIÓN UNIFICADA DE RESPUESTA CON HISTORIAL ---
+def generate_ai_response(history_messages):
     provider, key = get_api_credentials()
     if not provider:
         yield "⚠️ Por favor configura tu clave 'OPENROUTER_API_KEY' o 'GEMINI_API_KEY' en los Secrets de Streamlit."
         return
 
     if provider == "openrouter":
-        yield from stream_openrouter_response(prompt_text, key)
+        yield from stream_openrouter_response(history_messages, key)
     else:
-        yield from stream_gemini_response(prompt_text, key)
+        yield from stream_gemini_response(history_messages, key)
 
 # --- ESTILOS VISUALES: GAMA OFICIAL SITIO ISTCGE ASCEND ---
 st.markdown("""
@@ -477,12 +491,12 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Historial de conversación
+# Historial de conversación (Mensaje de Bienvenida conforme al documento oficial de entrenamiento)
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {
             "role": "assistant",
-            "content": "¡Hola! Te saluda **NIA**, asesora comercial de admisiones del **Instituto Superior Tecnológico CGE (ISTCGE)** y nuestro ecosistema **ASCEND**.\n\n¿Listo para construir tu siguiente nivel profesional? Te ayudo a elegir tu carrera oficial de tercer nivel 100% en línea:\n\n* **Tecnología Superior en Desarrollo de Software** *(Alta demanda, bases de datos y desarrollo con IA)*\n* **Tecnología Superior en Ventas Digitales** *(Domina e-commerce, funnels y cierre omnicanal)*\n* **Homologación de Experiencia Laboral** *(¡Convalida tus conocimientos y titúlate en menor tiempo!)*\n* **Test Vocacional Gratuito** *(Descubre tu perfil afín en 3 minutos)*\n\n¿En cuál de nuestras opciones te gustaría recibir información sobre requisitos o facilidades de pago?"
+            "content": "¡Hola! 👋 Soy **NIA**, tu guía virtual de **ISTCGE ASCEND**.\n\nPuedo ayudarte a conocer nuestras **carreras oficiales de tercer nivel 100% en línea** (Desarrollo de Software y Ventas Digitales), explorar tu ruta de homologación de experiencia laboral o realizar el Test Vocacional. 🧭\n\n¿Qué te gustaría descubrir hoy? ✨"
         }
     ]
 
@@ -525,13 +539,13 @@ if active_prompt:
         st.markdown(active_prompt)
 
     with st.chat_message("assistant"):
-        if es_saludo_generico(active_prompt):
-            reply = "¡Hola! Qué gusto saludarte. En **ISTCGE** contamos con convocatorias abiertas para nuestras carreras oficiales de tercer nivel 100% en línea:\n\n1. **Tecnología Superior en Desarrollo de Software**\n2. **Tecnología Superior en Ventas Digitales**\n3. **Homologación y Validación de Experiencia Laboral**\n\n¿De cuál de ellas deseas conocer los detalles o facilidades de pago?"
+        if es_saludo_inicial_unico(active_prompt, st.session_state.messages):
+            reply = "¡Hola! Qué gusto saludarte. 👋 En **ISTCGE ASCEND** contamos con convocatorias abiertas para nuestras carreras oficiales de tercer nivel 100% en línea:\n\n1. 💻 **Tecnología Superior en Desarrollo de Software**\n2. 📈 **Tecnología Superior en Ventas Digitales**\n3. ⚡ **Homologación y Validación de Experiencia Laboral**\n\n¿De cuál de ellas deseas conocer los detalles o comunicarte con un asesor por WhatsApp? 📲"
             st.markdown(reply)
             st.session_state.messages.append({"role": "assistant", "content": reply})
         else:
             with st.spinner("NIA está consultando la información oficial de ISTCGE..."):
-                full_response = st.write_stream(generate_ai_response(active_prompt))
+                full_response = st.write_stream(generate_ai_response(st.session_state.messages))
             st.session_state.messages.append({"role": "assistant", "content": full_response})
     
     st.rerun()
