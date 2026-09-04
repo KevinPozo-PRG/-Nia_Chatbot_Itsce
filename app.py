@@ -66,7 +66,7 @@ REGLAS OBLIGATORIAS DE PERSONALIDAD Y FORMATO (DOCUMENTO DE ENTRENAMIENTO OFICIA
 3. Regla de Emojis: Incluye EXACTAMENTE 2 a 3 emojis pertinentes por mensaje (por ejemplo: 👋, 💻, 📈, 🚀, 💬, 📲). No sobrecargues ni uses emojis decorativos excesivos.
 4. Brevedad y Concisión: Responde primero lo esencial en 35 a 75 palabras aproximadamente. Una idea principal por párrafo.
 5. Regla de Derivación Comercial a WhatsApp: Cuando el usuario consulte por costos vigentes, cuotas, facilidades de pago, becas, fechas de inicio, requisitos de inscripción o evaluación de homologación de materias, da una respuesta breve y DERIVA OBLIGATORIAMENTE al número oficial de WhatsApp 099 911 5216 o al enlace https://wa.me/593999115216.
-6. Transparencia y Honestidad: No prometas un número exacto de materias homologadas antes del prediagnóstico oficial, ni prometas admisión o empleo garantizado. El test vocacional es estrictamente orientativo.
+6. Transparencia y Honestidad: No prometas un número exacto de materias homologadas antes del prediagnóstico oficial, ni prometas admisión o empleo garantizado. El test vocacional es strictly orientativo.
 7. Cierre: Concluye siempre con una sola pregunta breve o paso de continuidad.
 
 INFORMACIÓN INSTITUCIONAL Y COMERCIAL OFICIAL:
@@ -76,13 +76,12 @@ INFORMACIÓN INSTITUCIONAL Y COMERCIAL OFICIAL:
 SALUDOS_GENERICOS = ["hola", "buenos dias", "buenas tardes", "buenas noches", "saludos", "hola!", "holaa", "buenas", "que tal", "hola nia"]
 
 def es_saludo_inicial_unico(text, history):
-    # Solo es saludo inicial si la conversación apenas comenzó
     if len(history) > 2:
         return False
     clean = text.lower().strip().replace(".", "").replace("!", "").replace("¿", "").replace("?", "")
     return clean in SALUDOS_GENERICOS
 
-# --- OBTENCIÓN DE CLAVES API (OPENROUTER O GEMINI) ---
+# --- OBTENCIÓN DE CLAVES API ---
 def get_api_credentials():
     openrouter_key = os.getenv("OPENROUTER_API_KEY")
     if not openrouter_key and "OPENROUTER_API_KEY" in st.secrets:
@@ -100,7 +99,7 @@ def get_api_credentials():
 
     return None, None
 
-# --- GENERADOR OPENROUTER SSE CON CONTEXTO CONVERSACIONAL COMPLETO ---
+# --- GENERADOR OPENROUTER SSE EN TIEMPO REAL CON MODELOS LIGEROS INSTANTÁNEOS (< 1 SEGUNDO) ---
 def stream_openrouter_response(history_messages, api_key):
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
@@ -110,20 +109,20 @@ def stream_openrouter_response(history_messages, api_key):
         "X-Title": "NIA ISTCGE Chatbot"
     }
 
-    # Armar historial completo para que el modelo tenga memoria perfecta
+    # Historial completo de conversación
     messages_payload = [{"role": "system", "content": SYSTEM_INSTRUCTION}]
     for msg in history_messages:
         role = "assistant" if msg["role"] == "assistant" else "user"
         messages_payload.append({"role": role, "content": msg["content"]})
 
+    # MODELOS ULTRA-LIGEROS DE RESPUESTA INSTANTÁNEA (< 0.8s) - EXCLUIMOS MODELOS RAZONADORES LENTOS (R1)
     candidate_models = [
-        "meta-llama/llama-3.3-70b-instruct:free",
-        "deepseek/deepseek-r1:free",
-        "deepseek/deepseek-chat:free",
-        "qwen/qwen-2.5-72b-instruct:free",
         "google/gemma-2-9b-it:free",
+        "meta-llama/llama-3.1-8b-instruct:free",
         "mistralai/mistral-7b-instruct:free",
-        "openrouter/auto"
+        "qwen/qwen-2.5-7b-instruct:free",
+        "openrouter/auto",
+        "meta-llama/llama-3.3-70b-instruct:free"
     ]
 
     last_error = ""
@@ -132,11 +131,12 @@ def stream_openrouter_response(history_messages, api_key):
             "model": model_name,
             "messages": messages_payload,
             "temperature": 0.7,
+            "max_tokens": 500,
             "stream": True
         }
 
         try:
-            r = requests.post(url, headers=headers, json=payload, stream=True, timeout=(5, 30))
+            r = requests.post(url, headers=headers, json=payload, stream=True, timeout=(3, 20))
             if r.status_code == 200:
                 has_yielded = False
                 for line in r.iter_lines():
@@ -157,7 +157,7 @@ def stream_openrouter_response(history_messages, api_key):
                 if has_yielded:
                     return
             else:
-                last_error = f"HTTP {r.status_code}: {r.text[:120]}"
+                last_error = f"HTTP {r.status_code}"
                 continue
         except Exception as e:
             last_error = str(e)
@@ -165,13 +165,11 @@ def stream_openrouter_response(history_messages, api_key):
 
     yield f"Disculpa, ocurrió un inconveniente momentáneo al conectar con el servidor: {last_error}"
 
-# --- GENERADOR FALLBACK DIRECTO DE GEMINI CON CONTEXTO COMPLETO ---
+# --- GENERADOR FALLBACK DIRECTO DE GEMINI ---
 def stream_gemini_response(history_messages, api_key):
     candidate_models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-latest"]
     
-    # Armar historial completo para Gemini REST
     contents_payload = []
-    # Incluir instrucción del sistema como primera parte
     contents_payload.append({"role": "user", "parts": [{"text": f"INSTRUCCIÓN DEL SISTEMA:\n{SYSTEM_INSTRUCTION}"}]})
     contents_payload.append({"role": "model", "parts": [{"text": "Entendido. Asumiré la personalidad de NIA con memoria completa del historial de conversación."}]})
 
@@ -181,14 +179,14 @@ def stream_gemini_response(history_messages, api_key):
 
     payload = {
         "contents": contents_payload,
-        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 800}
+        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 600}
     }
     headers = {"Content-Type": "application/json"}
 
     for model_name in candidate_models:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:streamGenerateContent?key={api_key}&alt=sse"
         try:
-            r = requests.post(url, headers=headers, json=payload, stream=True, timeout=(5, 30))
+            r = requests.post(url, headers=headers, json=payload, stream=True, timeout=(3, 20))
             if r.status_code == 200:
                 has_yielded = False
                 for line in r.iter_lines():
@@ -211,7 +209,7 @@ def stream_gemini_response(history_messages, api_key):
 
     yield "Disculpa, nuestros servidores de IA están procesando una alta carga. Por favor reintenta en un instante."
 
-# --- FUNCIÓN UNIFICADA DE RESPUESTA CON HISTORIAL ---
+# --- FUNCIÓN UNIFICADA DE RESPUESTA ---
 def generate_ai_response(history_messages):
     provider, key = get_api_credentials()
     if not provider:
@@ -491,7 +489,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Historial de conversación (Mensaje de Bienvenida conforme al documento oficial de entrenamiento)
+# Historial de conversación
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {
